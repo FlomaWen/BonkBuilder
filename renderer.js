@@ -99,7 +99,118 @@ document.addEventListener('DOMContentLoaded', () => {
     initializeBuildsPage();
     checkOverwolfSupport();
     loadSavedBuilds();
+
+    // Bouton pour ouvrir l'overlay en fenêtre
+    const openOverlayBtn = document.getElementById('open-overlay-window');
+    if (openOverlayBtn) {
+        openOverlayBtn.addEventListener('click', openOverlayWindow);
+    }
 });
+
+// Fonction universelle pour ouvrir l'overlay (Overwolf ou Electron)
+function openOverlayWindow() {
+    console.log('🔍 Tentative d\'ouverture de l\'overlay...');
+
+    // Vérifier si on est dans Overwolf
+    if (typeof overwolf !== 'undefined' && overwolf.windows) {
+        console.log('✓ Overwolf détecté, utilisation de l\'API Overwolf');
+
+        // Utiliser l'API Overwolf
+        overwolf.windows.obtainDeclaredWindow('overlay', (result) => {
+            console.log('📦 obtainDeclaredWindow result:', result);
+
+            if (result.success && result.window) {
+                const windowId = result.window.id;
+                console.log('✓ Fenêtre overlay obtenue, ID:', windowId);
+
+                // Vérifier l'état de la fenêtre
+                overwolf.windows.getWindowState(windowId, (stateResult) => {
+                    console.log('📊 État de la fenêtre:', stateResult);
+
+                    if (stateResult.success) {
+                        const state = stateResult.window_state;
+
+                        // Si la fenêtre est minimisée ou fermée, la restaurer
+                        if (state === 'minimized' || state === 'closed') {
+                            console.log('🔄 Restauration de la fenêtre...');
+                            overwolf.windows.restore(windowId, (restoreResult) => {
+                                console.log('📊 Restore result:', restoreResult);
+                                if (restoreResult.success) {
+                                    console.log('✅ Overlay Overwolf ouvert avec succès !');
+                                    showNotification('✅ Overlay ouvert !', 'La fenêtre overlay est maintenant visible.');
+                                } else {
+                                    console.error('❌ Erreur lors de la restauration:', restoreResult);
+                                    alert('Erreur lors de la restauration de l\'overlay.\n\nVérifiez la console (F12) pour plus de détails.');
+                                }
+                            });
+                        } else {
+                            console.log('✅ La fenêtre est déjà ouverte, focus...');
+                            // La fenêtre est déjà ouverte, lui donner le focus
+                            overwolf.windows.bringToFront(windowId, (bringResult) => {
+                                if (bringResult.success) {
+                                    console.log('✅ Focus donné à l\'overlay');
+                                    showNotification('✅ Overlay déjà ouvert !', 'La fenêtre overlay est mise au premier plan.');
+                                } else {
+                                    console.error('⚠️ Erreur bringToFront:', bringResult);
+                                }
+                            });
+                        }
+                    } else {
+                        console.error('❌ Erreur getWindowState:', stateResult);
+                        alert('Erreur lors de la vérification de l\'état de l\'overlay.');
+                    }
+                });
+            } else {
+                console.error('❌ Erreur obtainDeclaredWindow:', result);
+                alert('❌ Impossible d\'obtenir la fenêtre overlay.\n\nAssurez-vous que :\n1. La fenêtre "overlay" est déclarée dans manifest.json\n2. Vous êtes dans le jeu MEGABONK\n3. L\'app est correctement chargée dans Overwolf\n\nVérifiez la console (F12) pour plus de détails.');
+            }
+        });
+    }
+    // Vérifier si on est dans Electron
+    else if (typeof require !== 'undefined') {
+        console.log('✓ Electron détecté, utilisation de l\'IPC');
+        try {
+            const { ipcRenderer } = require('electron');
+            ipcRenderer.send('open-overlay');
+            console.log('✅ Message IPC envoyé pour ouvrir l\'overlay Electron');
+            showNotification('✅ Overlay ouvert !', 'La fenêtre overlay est maintenant visible.');
+        } catch (e) {
+            console.error('❌ Erreur Electron:', e);
+            alert('Erreur lors de l\'ouverture de l\'overlay Electron.\n\n' + e.message);
+        }
+    }
+    // Sinon, navigateur web standard
+    else {
+        console.log('⚠️ Ni Overwolf ni Electron détecté');
+        alert('⚠️ L\'overlay n\'est disponible que dans l\'application Overwolf ou Electron.\n\nPour utiliser l\'overlay en jeu, installez l\'application via Overwolf.');
+    }
+}
+
+// Fonction pour afficher des notifications (optionnelle)
+function showNotification(title, message) {
+    // Créer une notification visuelle dans l'app
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #00ff88, #00cc66);
+        color: #1a1a2e;
+        padding: 15px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        z-index: 10000;
+        box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
+        animation: slideIn 0.3s ease;
+    `;
+    notification.innerHTML = `<strong>${title}</strong><br><span style="font-size: 0.9rem; font-weight: normal;">${message}</span>`;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
 
 // ===== TAB NAVIGATION =====
 function initializeTabs() {
@@ -121,6 +232,11 @@ function switchTab(tabName) {
     // Add active class to selected tab and content
     document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
     document.getElementById(`${tabName}-tab`).classList.add('active');
+
+    // Si on ouvre l'onglet overlay, charger le build actif
+    if (tabName === 'overlay') {
+        loadActiveOverlay();
+    }
 }
 
 // ===== BUILDS PAGE =====
@@ -471,6 +587,120 @@ function deleteBuild(buildId) {
 // Make deleteBuild and activateBuild available globally
 window.deleteBuild = deleteBuild;
 window.activateBuild = activateBuild;
+
+// ===== OVERLAY FUNCTIONS =====
+
+function loadActiveOverlay() {
+    const activeBuildId = parseInt(localStorage.getItem('bonkdata_active_build'));
+    const noActiveBuildDiv = document.getElementById('no-active-build');
+    const activeBuildDisplay = document.getElementById('active-build-display');
+
+    if (!activeBuildId) {
+        noActiveBuildDiv.style.display = 'block';
+        activeBuildDisplay.style.display = 'none';
+        return;
+    }
+
+    const savedBuilds = JSON.parse(localStorage.getItem('bonkdata_builds') || '[]');
+    const activeBuild = savedBuilds.find(b => b.id === activeBuildId);
+
+    if (!activeBuild) {
+        noActiveBuildDiv.style.display = 'block';
+        activeBuildDisplay.style.display = 'none';
+        return;
+    }
+
+    noActiveBuildDiv.style.display = 'none';
+    activeBuildDisplay.style.display = 'block';
+
+    displayActiveBuildOverlay(activeBuild);
+}
+
+function displayActiveBuildOverlay(build) {
+    const container = document.getElementById('active-build-display');
+    const defaultWeaponData = WEAPONS.find(w => w.id === build.character.defaultWeaponId);
+
+    container.innerHTML = `
+        <div class="overlay-header">
+            <div class="overlay-build-title">
+                <h3>🎮 ${build.name || build.character.name}</h3>
+                <span class="overlay-subtitle">Build actif</span>
+            </div>
+        </div>
+        
+        <div class="overlay-content">
+            <!-- Character Display -->
+            <div class="overlay-section">
+                <div class="overlay-section-header">
+                    <span class="overlay-icon">👤</span>
+                    <h4>Personnage</h4>
+                </div>
+                <div class="overlay-items">
+                    <div class="overlay-item large">
+                        <img src="${build.character.image}" alt="${build.character.name}" />
+                        <span class="overlay-item-name">${build.character.name}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Weapons Display -->
+            <div class="overlay-section">
+                <div class="overlay-section-header">
+                    <span class="overlay-icon">⚔️</span>
+                    <h4>Armes à obtenir (4)</h4>
+                </div>
+                <div class="overlay-items">
+                    ${defaultWeaponData ? `
+                        <div class="overlay-item">
+                            <div class="item-badge default">PAR DÉFAUT</div>
+                            <img src="${defaultWeaponData.image}" alt="${defaultWeaponData.name}" />
+                            <span class="overlay-item-name">${defaultWeaponData.name}</span>
+                        </div>
+                    ` : ''}
+                    ${build.weapons.map((weapon, index) => `
+                        <div class="overlay-item">
+                            <div class="item-badge">${index + 2}</div>
+                            <img src="${weapon.image}" alt="${weapon.name}" />
+                            <span class="overlay-item-name">${weapon.name}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+            
+            <!-- Tomes Display -->
+            <div class="overlay-section">
+                <div class="overlay-section-header">
+                    <span class="overlay-icon">📚</span>
+                    <h4>Tomes à obtenir (4)</h4>
+                </div>
+                <div class="overlay-items">
+                    ${build.tomes.map((tome, index) => `
+                        <div class="overlay-item">
+                            <div class="item-badge">${index + 1}</div>
+                            <img src="${tome.image}" alt="${tome.name}" />
+                            <span class="overlay-item-name">${tome.name}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        </div>
+        
+        <div class="overlay-footer">
+            <button class="btn-secondary" onclick="switchTab('builds')">← Retour aux Builds</button>
+            <button class="btn-primary" onclick="deactivateBuild()">Désactiver ce build</button>
+        </div>
+    `;
+}
+
+function deactivateBuild() {
+    if (confirm('Voulez-vous désactiver ce build ?')) {
+        localStorage.removeItem('bonkdata_active_build');
+        loadActiveOverlay();
+        loadSavedBuilds();
+    }
+}
+
+window.deactivateBuild = deactivateBuild;
 
 // ===== OVERWOLF STATUS =====
 function checkOverwolfSupport() {

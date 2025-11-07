@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BonkData - Overlay</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #e8e8e8;
+            padding: 10px;
+            overflow-y: auto;
+        }
+
+        .overlay-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .overlay-header {
+            background: rgba(0, 255, 136, 0.1);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+        }
+
+        .overlay-header h2 {
+            color: #00ff88;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .overlay-header p {
+            color: #888;
+            font-size: 0.8rem;
+        }
+
+        .no-build {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .no-build h3 {
+            color: #ffd700;
+            margin-bottom: 10px;
+        }
+
+        .no-build p {
+            color: #e8e8e8;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
+        .build-section {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 8px;
+            padding: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .build-section h3 {
+            color: #00d9ff;
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .item-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 6px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .item-card:hover {
+            border-color: #00d9ff;
+            transform: scale(1.05);
+        }
+
+        .item-card.default {
+            border-color: rgba(255, 215, 0, 0.5);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .item-card img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+        }
+
+        .item-name {
+            font-size: 0.7rem;
+            text-align: center;
+            color: #e8e8e8;
+            line-height: 1.2;
+        }
+
+        .item-number {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: linear-gradient(135deg, #00d9ff, #0088cc);
+            color: #fff;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .item-number.default {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+            color: #1a1a2e;
+        }
+
+        .character-display {
+            display: flex;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .character-card {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid rgba(0, 217, 255, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .character-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+        }
+
+        .character-name {
+            font-size: 0.9rem;
+            color: #00d9ff;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay-container">
+        <div class="overlay-header">
+            <h2 id="build-title">🎮 BonkData Overlay</h2>
+            <p id="build-subtitle">Build actif en jeu</p>
+        </div>
+
+        <div id="no-build-message" class="no-build" style="display: none;">
+            <h3>⚠️ Aucun build actif</h3>
+            <p>Activez un build dans l'application principale pour l'afficher ici.</p>
+        </div>
+
+        <div id="build-display" style="display: none;">
+            <!-- Character -->
+            <div class="build-section">
+                <h3>👤 Personnage</h3>
+                <div id="character-display" class="character-display"></div>
+            </div>
+
+            <!-- Weapons -->
+            <div class="build-section">
+                <h3>⚔️ Armes (4)</h3>
+                <div id="weapons-display" class="items-grid"></div>
+            </div>
+
+            <!-- Tomes -->
+            <div class="build-section">
+                <h3>📚 Tomes (4)</h3>
+                <div id="tomes-display" class="items-grid"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Charger et afficher le build actif
+        function loadActiveBuild() {
+            const activeBuildId = parseInt(localStorage.getItem('bonkdata_active_build'));
+            const noBuildDiv = document.getElementById('no-build-message');
+            const buildDisplay = document.getElementById('build-display');
+
+            if (!activeBuildId) {
+                noBuildDiv.style.display = 'block';
+                buildDisplay.style.display = 'none';
+                return;
+            }
+
+            const savedBuilds = JSON.parse(localStorage.getItem('bonkdata_builds') || '[]');
+            const build = savedBuilds.find(b => b.id === activeBuildId);
+
+            if (!build) {
+                noBuildDiv.style.display = 'block';
+                buildDisplay.style.display = 'none';
+                return;
+            }
+
+            noBuildDiv.style.display = 'none';
+            buildDisplay.style.display = 'block';
+
+            displayBuild(build);
+        }
+
+        function displayBuild(build) {
+            // Update title
+            document.getElementById('build-title').textContent = `🎮 ${build.name || build.character.name}`;
+
+            // Display character
+            const characterDisplay = document.getElementById('character-display');
+            characterDisplay.innerHTML = `
+                <div class="character-card">
+                    <img src="${build.character.image}" alt="${build.character.name}" />
+                    <span class="character-name">${build.character.name}</span>
+                </div>
+            `;
+
+            // Get default weapon data
+            const WEAPONS = [
+                { id: 'aegis', name: 'Aegis', image: 'assets/weapons/Aegis_Icon.jpg' },
+                { id: 'aura', name: 'Aura', image: 'assets/weapons/Aura_Icon.jpg' },
+                { id: 'axe', name: 'Axe', image: 'assets/weapons/Axe_Icon.jpg' },
+                { id: 'banana', name: 'Banana', image: 'assets/weapons/Banana_Icon.jpg' },
+                { id: 'blackhole', name: 'Black Hole', image: 'assets/weapons/BlackHole.jpg' },
+                { id: 'bloodmagic', name: 'Blood Magic', image: 'assets/weapons/Blood_Magic.jpg' },
+                { id: 'bone', name: 'Bone', image: 'assets/weapons/Bone_Icon.jpg' },
+                { id: 'bow', name: 'Bow', image: 'assets/weapons/Bow_Icon.jpg' },
+                { id: 'chunker', name: 'Chunker', image: 'assets/weapons/Chunker_Icon.jpg' },
+                { id: 'corruptedsword', name: 'Corrupted Sword', image: 'assets/weapons/Corrupted_Sword.jpg' },
+                { id: 'dexecutioner', name: 'Dexecutioner', image: 'assets/weapons/Dexecutioner.jpg' },
+                { id: 'dice', name: 'Dice', image: 'assets/weapons/Dice.jpg' },
+                { id: 'dragonsbreath', name: "Dragon's Breath", image: 'assets/weapons/Dragon\'s_Breath.jpg' },
+                { id: 'firestaff', name: 'Fire Staff', image: 'assets/weapons/Fire_Staff.jpg' },
+                { id: 'firewalk', name: 'Firewalk', image: 'assets/weapons/Firewalk.jpg' },
+                { id: 'frostwalker', name: 'Frost Walker', image: 'assets/weapons/Frost_walker.jpg' },
+                { id: 'herosword', name: 'Hero Sword', image: 'assets/weapons/Hero_Sword_Icon.jpg' },
+                { id: 'katana', name: 'Katana', image: 'assets/weapons/Katana.jpg' },
+                { id: 'lightningstaff', name: 'Lightning Staff', image: 'assets/weapons/Lightning_Staff_Icon.jpg' },
+                { id: 'mines', name: 'Mines', image: 'assets/weapons/Mines.jpg' },
+                { id: 'poisonflask', name: 'Poison Flask', image: 'assets/weapons/Poison_Flask_Icon.jpg' },
+                { id: 'revolver', name: 'Revolver', image: 'assets/weapons/Revolver_Icon.jpg' },
+                { id: 'shotgun', name: 'Shotgun', image: 'assets/weapons/Shotgun.jpg' },
+                { id: 'sluttyrocket', name: 'Slutty Rocket', image: 'assets/weapons/SluttyRocket.jpg' },
+                { id: 'sniperrifle', name: 'Sniper Rifle', image: 'assets/weapons/Sniper_Rifle.jpg' },
+                { id: 'spacenoodle', name: 'Space Noodle', image: 'assets/weapons/Space_Noodle.jpg' },
+                { id: 'sword', name: 'Sword', image: 'assets/weapons/Sword_Icon.jpg' },
+                { id: 'tornado', name: 'Tornado', image: 'assets/weapons/Tornado.jpg' },
+                { id: 'wirelessdagger', name: 'Wireless Dagger', image: 'assets/weapons/Wireless_Dagger.jpg' }
+            ];
+
+            const defaultWeapon = WEAPONS.find(w => w.id === build.character.defaultWeaponId);
+
+            // Display weapons
+            const weaponsDisplay = document.getElementById('weapons-display');
+            let weaponsHTML = '';
+
+            if (defaultWeapon) {
+                weaponsHTML += `
+                    <div class="item-card default">
+                        <span class="item-number default">★</span>
+                        <img src="${defaultWeapon.image}" alt="${defaultWeapon.name}" />
+                        <span class="item-name">${defaultWeapon.name}</span>
+                    </div>
+                `;
+            }
+
+            build.weapons.forEach((weapon, index) => {
+                weaponsHTML += `
+                    <div class="item-card">
+                        <span class="item-number">${index + 2}</span>
+                        <img src="${weapon.image}" alt="${weapon.name}" />
+                        <span class="item-name">${weapon.name}</span>
+                    </div>
+                `;
+            });
+
+            weaponsDisplay.innerHTML = weaponsHTML;
+
+            // Display tomes
+            const tomesDisplay = document.getElementById('tomes-display');
+            let tomesHTML = '';
+
+            build.tomes.forEach((tome, index) => {
+                tomesHTML += `
+                    <div class="item-card">
+                        <span class="item-number">${index + 1}</span>
+                        <img src="${tome.image}" alt="${tome.name}" />
+                        <span class="item-name">${tome.name}</span>
+                    </div>
+                `;
+            });
+
+            tomesDisplay.innerHTML = tomesHTML;
+        }
+
+        // Charger au démarrage
+        loadActiveBuild();
+
+        // Recharger toutes les 2 secondes pour détecter les changements
+        setInterval(loadActiveBuild, 2000);
+    </script>
+</body>
+</html>
+

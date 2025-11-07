@@ -2,11 +2,11 @@
   "manifest_version": 1,
   "type": "WebApp",
   "meta": {
-    "name": "BonkData Overwolf App",
+    "name": "BonkData - MEGABONK Build Tracker",
     "author": "BonkData",
     "version": "1.0.0",
     "minimum-overwolf-version": "0.77.10",
-    "description": "Sample application Overwolf + Electron",
+    "description": "Track your MEGABONK builds with in-game overlay",
     "dock_button_title": "BonkData",
     "icon": "megabonk_p4u2.png",
     "icon_gray": "megabonk_p4u2.png",
@@ -32,9 +32,43 @@
         "min_size": {
           "width": 800,
           "height": 600
-        }
+        },
+        "desktop_only": true
+      },
+      "overlay": {
+        "file": "overlay.html",
+        "transparent": false,
+        "resizable": true,
+        "show_in_taskbar": true,
+        "size": {
+          "width": 350,
+          "height": 600
+        },
+        "min_size": {
+          "width": 300,
+          "height": 400
+        },
+        "desktop_only": false,
+        "in_game_only": false,
+        "native_window": false,
+        "grab_keyboard_focus": false,
+        "grab_focus_on_desktop": false
       }
-    }
+    },
+    "game_targeting": {
+      "type": "dedicated",
+      "game_ids": [2645]
+    },
+    "game_events": [2645],
+    "launch_events": [
+      {
+        "event": "GameLaunch",
+        "event_data": {
+          "game_ids": [2645]
+        },
+        "start_minimized": false
+      }
+    ]
   }
 }
 

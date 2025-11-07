@@ -1,7 +1,8 @@
-const { app, BrowserWindow } = require('electron');
+const { app, BrowserWindow, ipcMain } = require('electron');
 const path = require('path');
 
 let mainWindow;
+let overlayWindow = null;
 
 function createWindow() {
   // Création de la fenêtre principale
@@ -26,10 +27,53 @@ function createWindow() {
 
   mainWindow.on('closed', () => {
     mainWindow = null;
+    if (overlayWindow) {
+      overlayWindow.close();
+    }
   });
 }
 
-// Initialisation de l'application
+function createOverlayWindow() {
+  if (overlayWindow) {
+    overlayWindow.focus();
+    return;
+  }
+
+  overlayWindow = new BrowserWindow({
+    width: 350,
+    height: 600,
+    x: 20,
+    y: 20,
+    frame: true,
+    alwaysOnTop: true,
+    skipTaskbar: false,
+    resizable: true,
+    title: 'BonkData - Overlay',
+    webPreferences: {
+      nodeIntegration: true,
+      contextIsolation: false
+    },
+    backgroundColor: '#1a1a2e',
+    opacity: 0.95
+  });
+
+  overlayWindow.loadFile('overlay.html');
+
+  overlayWindow.on('closed', () => {
+    overlayWindow = null;
+  });
+}
+
+ipcMain.on('open-overlay', () => {
+  createOverlayWindow();
+});
+
+ipcMain.on('close-overlay', () => {
+  if (overlayWindow) {
+    overlayWindow.close();
+  }
+});
+
 app.whenReady().then(() => {
   createWindow();
 
@@ -40,7 +84,6 @@ app.whenReady().then(() => {
   });
 });
 
-// Fermeture de l'application
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
