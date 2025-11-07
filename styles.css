@@ -314,6 +314,38 @@ footer {
     margin-left: 5px;
 }
 
+/* Build Name Input */
+.build-name-input {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.1rem;
+    background: rgba(0, 0, 0, 0.4);
+    border: 2px solid rgba(0, 217, 255, 0.3);
+    border-radius: 8px;
+    color: #e8e8e8;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: all 0.3s ease;
+}
+
+.build-name-input:focus {
+    outline: none;
+    border-color: #00d9ff;
+    background: rgba(0, 217, 255, 0.05);
+    box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
+}
+
+.build-name-input::placeholder {
+    color: #666;
+    font-style: italic;
+}
+
+.hint-text {
+    margin-top: 10px;
+    font-size: 0.9rem;
+    color: #888;
+    font-style: italic;
+}
+
 /* Build Actions */
 .build-actions {
     display: flex;
@@ -365,7 +397,7 @@ footer {
 /* Saved Builds */
 .saved-builds-container {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 20px;
 }
 
@@ -383,6 +415,27 @@ footer {
     padding: 20px;
     border: 2px solid rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
+    position: relative;
+}
+
+.saved-build-card.active-build {
+    border-color: #00ff88;
+    background: rgba(0, 255, 136, 0.05);
+    box-shadow: 0 0 30px rgba(0, 255, 136, 0.3);
+}
+
+.saved-build-card.active-build::before {
+    content: "✓ BUILD ACTIF";
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: linear-gradient(135deg, #00ff88, #00cc66);
+    color: #1a1a2e;
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(0, 255, 136, 0.5);
 }
 
 .saved-build-card:hover {
@@ -400,34 +453,126 @@ footer {
 .build-preview {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: 15px;
     margin-bottom: 15px;
 }
 
-.build-preview-item {
+.build-preview-section {
     display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px;
-    background: rgba(0, 0, 0, 0.3);
-    border-radius: 6px;
-}
-
-.build-preview-item img {
-    width: 40px;
-    height: 40px;
-    object-fit: contain;
+    flex-direction: column;
+    gap: 8px;
 }
 
 .build-preview-label {
     color: #00d9ff;
     font-weight: 600;
     font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.build-preview-value {
-    color: #e8e8e8;
-    font-size: 0.95rem;
+.build-icons-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+    min-height: 60px;
+    align-items: center;
+}
+
+.build-icons-container.single-icon {
+    min-height: auto;
+    padding: 10px;
+}
+
+.build-icon-item {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
+    cursor: help;
+}
+
+.build-icon-item:hover {
+    border-color: #00d9ff;
+    transform: scale(1.1);
+    box-shadow: 0 0 15px rgba(0, 217, 255, 0.5);
+    z-index: 10;
+}
+
+.build-icon-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+}
+
+.build-icon-name {
+    position: absolute;
+    bottom: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: #00d9ff;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    z-index: 100;
+}
+
+.build-icon-item:hover .build-icon-name {
+    opacity: 1;
+}
+
+.build-icon-item.default-weapon {
+    border-color: rgba(255, 215, 0, 0.6);
+    background: rgba(255, 215, 0, 0.1);
+}
+
+.build-icon-item.default-weapon:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.6);
+}
+
+.default-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #1a1a2e;
+    font-size: 0.8rem;
+    font-weight: bold;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #1a1a2e;
+    box-shadow: 0 2px 8px rgba(255, 215, 0, 0.5);
+}
+
+.default-weapon-badge {
+    background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.2));
+    border: 2px solid rgba(255, 215, 0, 0.5);
+    color: #ffd700;
+    padding: 8px 15px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    display: inline-block;
 }
 
 .build-card-actions {
@@ -453,5 +598,24 @@ footer {
 
 .btn-delete:hover {
     background: rgba(255, 68, 68, 0.4);
+}
+
+.btn-activate {
+    background: rgba(0, 255, 136, 0.2);
+    color: #00ff88;
+    border: 1px solid #00ff88;
+}
+
+.btn-activate:hover:not(:disabled) {
+    background: rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.3);
+}
+
+.btn-activate:disabled {
+    background: rgba(0, 255, 136, 0.3);
+    color: #00ff88;
+    border-color: #00ff88;
+    cursor: default;
+    opacity: 1;
 }
 

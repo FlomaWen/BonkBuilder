@@ -287,9 +287,21 @@ function saveBuild() {
     // Get saved builds from localStorage
     let savedBuilds = JSON.parse(localStorage.getItem('bonkdata_builds') || '[]');
 
+    // Get build name from input or generate automatic name
+    const buildNameInput = document.getElementById('build-name-input');
+    let buildName = buildNameInput.value.trim();
+
+    if (!buildName) {
+        // Generate automatic name: "CharacterName - build X"
+        const characterBuilds = savedBuilds.filter(b => b.character.id === currentBuild.character.id);
+        const buildNumber = characterBuilds.length + 1;
+        buildName = `${currentBuild.character.name} - build ${buildNumber}`;
+    }
+
     // Create build object with timestamp
     const buildToSave = {
         id: Date.now(),
+        name: buildName,
         character: currentBuild.character,
         weapons: currentBuild.weapons.map(id => WEAPONS.find(w => w.id === id)),
         tomes: currentBuild.tomes.map(id => TOMES.find(t => t.id === id)),
@@ -299,7 +311,7 @@ function saveBuild() {
     savedBuilds.push(buildToSave);
     localStorage.setItem('bonkdata_builds', JSON.stringify(savedBuilds));
 
-    alert(`✅ Build "${currentBuild.character.name}" sauvegardé avec succès !`);
+    alert(`✅ Build "${buildName}" sauvegardé avec succès !`);
     resetBuild();
     loadSavedBuilds();
 }
@@ -324,6 +336,7 @@ function resetBuild() {
     document.getElementById('character-weapon').textContent = '-';
     document.getElementById('weapon-count').textContent = '0/3';
     document.getElementById('tome-count').textContent = '0/4';
+    document.getElementById('build-name-input').value = '';
 
     updateSaveButtonState();
 }
@@ -349,37 +362,98 @@ function createBuildCard(build) {
     const card = document.createElement('div');
     card.className = 'saved-build-card';
 
+    // Vérifier si c'est le build actif
+    const activeBuildId = parseInt(localStorage.getItem('bonkdata_active_build'));
+    const isActiveBuild = build.id === activeBuildId;
+
     const date = new Date(build.createdAt).toLocaleDateString('fr-FR', {
         year: 'numeric',
         month: 'long',
         day: 'numeric'
     });
 
+    // Gérer les anciens builds qui n'ont pas de propriété "name"
+    const buildName = build.name || `${build.character.name} - build`;
+
+    // Trouver l'arme par défaut dans la liste des armes
+    const defaultWeaponData = WEAPONS.find(w => w.id === build.character.defaultWeaponId);
+
     card.innerHTML = `
-        <h4>🎮 ${build.character.name}</h4>
-        <p style="color: #888; font-size: 0.85rem; margin-bottom: 10px;">${date}</p>
+        <h4>🎮 ${buildName}</h4>
+        <p style="color: #888; font-size: 0.85rem; margin-bottom: 15px;">${date}</p>
         
         <div class="build-preview">
-            <div class="build-preview-item">
-                <span class="build-preview-label">Arme par défaut:</span>
-                <span class="build-preview-value">${build.character.defaultWeapon}</span>
+            <!-- Character Section -->
+            <div class="build-preview-section">
+                <span class="build-preview-label">👤 Personnage</span>
+                <div class="build-icons-container">
+                    <div class="build-icon-item" title="${build.character.name}">
+                        <img src="${build.character.image}" alt="${build.character.name}" />
+                        <span class="build-icon-name">${build.character.name}</span>
+                    </div>
+                </div>
             </div>
-            <div class="build-preview-item">
-                <span class="build-preview-label">Armes:</span>
-                <span class="build-preview-value">${build.weapons.map(w => w.name).join(', ')}</span>
+
+            <!-- All Weapons Section (Default + Additional) -->
+            <div class="build-preview-section">
+                <span class="build-preview-label">⚔️ Armes</span>
+                <div class="build-icons-container">
+                    <!-- Default Weapon -->
+                    ${defaultWeaponData ? `
+                        <div class="build-icon-item default-weapon" title="${defaultWeaponData.name} (Par défaut)">
+                            <img src="${defaultWeaponData.image}" alt="${defaultWeaponData.name}" />
+                            <span class="default-badge">★</span>
+                        </div>
+                    ` : ''}
+                    <!-- Additional Weapons -->
+                    ${build.weapons.map(weapon => `
+                        <div class="build-icon-item" title="${weapon.name}">
+                            <img src="${weapon.image}" alt="${weapon.name}" />
+                        </div>
+                    `).join('')}
+                </div>
             </div>
-            <div class="build-preview-item">
-                <span class="build-preview-label">Tomes:</span>
-                <span class="build-preview-value">${build.tomes.map(t => t.name).join(', ')}</span>
+
+            <!-- Tomes Section -->
+            <div class="build-preview-section">
+                <span class="build-preview-label">📚 Tomes</span>
+                <div class="build-icons-container">
+                    ${build.tomes.map(tome => `
+                        <div class="build-icon-item" title="${tome.name}">
+                            <img src="${tome.image}" alt="${tome.name}" />
+                        </div>
+                    `).join('')}
+                </div>
             </div>
         </div>
         
         <div class="build-card-actions">
+            <button class="btn-small btn-activate" onclick="activateBuild(${build.id})" ${isActiveBuild ? 'disabled' : ''}>
+                ${isActiveBuild ? '✓ Actif' : '▶️ Activer'}
+            </button>
             <button class="btn-small btn-delete" onclick="deleteBuild(${build.id})">🗑️ Supprimer</button>
         </div>
     `;
 
+    if (isActiveBuild) {
+        card.classList.add('active-build');
+    }
+
     return card;
+}
+
+function activateBuild(buildId) {
+    // Sauvegarder l'ID du build actif
+    localStorage.setItem('bonkdata_active_build', buildId);
+
+    // Recharger l'affichage des builds
+    loadSavedBuilds();
+
+    // Notification
+    const build = JSON.parse(localStorage.getItem('bonkdata_builds') || '[]').find(b => b.id === buildId);
+    if (build) {
+        alert(`✅ Build "${build.name || build.character.name}" activé !\n\n🎮 L'overlay de jeu affichera maintenant ce build.`);
+    }
 }
 
 function deleteBuild(buildId) {
@@ -394,8 +468,9 @@ function deleteBuild(buildId) {
     loadSavedBuilds();
 }
 
-// Make deleteBuild available globally
+// Make deleteBuild and activateBuild available globally
 window.deleteBuild = deleteBuild;
+window.activateBuild = activateBuild;
 
 // ===== OVERWOLF STATUS =====
 function checkOverwolfSupport() {

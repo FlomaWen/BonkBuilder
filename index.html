@@ -17,6 +17,7 @@
         <nav class="tabs">
             <button class="tab-button active" data-tab="home">🏠 Accueil</button>
             <button class="tab-button" data-tab="builds">⚔️ Builds</button>
+            <button class="tab-button" data-tab="overlay">🎮 Overlay</button>
         </nav>
 
         <main>
@@ -70,6 +71,18 @@
                         </div>
                     </div>
 
+                    <!-- Build Name Input -->
+                    <div class="build-section">
+                        <h3>4. Nom du Build (Optionnel)</h3>
+                        <input
+                            type="text"
+                            id="build-name-input"
+                            class="build-name-input"
+                            placeholder="Ex: Build Tank, Build DPS, Build Speed..."
+                            maxlength="50"
+                        />
+                    </div>
+
                     <!-- Save Build Button -->
                     <div class="build-actions">
                         <button id="save-build-btn" class="btn-primary" disabled>💾 Sauvegarder le Build</button>
@@ -82,6 +95,54 @@
                     <h2>📚 Mes Builds Sauvegardés</h2>
                     <div id="saved-builds-list" class="saved-builds-container">
                         <p class="no-builds">Aucun build sauvegardé pour le moment.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Overlay Tab -->
+            <div id="overlay-tab" class="tab-content">
+                <div class="card">
+                    <h2>🎮 Overlay de Jeu</h2>
+
+                    <div id="no-active-build" class="overlay-message">
+                        <div class="info-box warning">
+                            <span class="info-icon">⚠️</span>
+                            <div>
+                                <h3>Aucun build actif</h3>
+                                <p>Allez dans l'onglet "Builds" et cliquez sur "▶️ Activer" sur un build pour l'utiliser en jeu.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="active-build-display" class="active-build-container" style="display: none;">
+                        <!-- Build actif sera affiché ici -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📋 Guide de l'Overlay</h2>
+                    <div class="overlay-guide">
+                        <div class="guide-item">
+                            <span class="guide-icon">1️⃣</span>
+                            <div>
+                                <h4>Activez un build</h4>
+                                <p>Sélectionnez un build dans l'onglet "Builds" et cliquez sur "Activer"</p>
+                            </div>
+                        </div>
+                        <div class="guide-item">
+                            <span class="guide-icon">2️⃣</span>
+                            <div>
+                                <h4>Consultez votre build</h4>
+                                <p>Votre build actif s'affiche ici avec tous les items à obtenir</p>
+                            </div>
+                        </div>
+                        <div class="guide-item">
+                            <span class="guide-icon">3️⃣</span>
+                            <div>
+                                <h4>En jeu</h4>
+                                <p>Utilisez cet overlay pendant votre partie pour savoir quels items prendre</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
