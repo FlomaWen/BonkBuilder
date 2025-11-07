@@ -8,10 +8,10 @@
     "minimum-overwolf-version": "0.77.10",
     "description": "Sample application Overwolf + Electron",
     "dock_button_title": "BonkData",
-    "icon": "IconMouseNormal.png",
-    "icon_gray": "IconMouseGray.png",
-    "launcher_icon": "desktop-icon.ico",
-    "window_icon": "TaskbarIcon.png"
+    "icon": "megabonk_p4u2.png",
+    "icon_gray": "megabonk_p4u2.png",
+    "launcher_icon": "megabonk_p4u2.png",
+    "window_icon": "megabonk_p4u2.png"
   },
   "permissions": [
     "GameInfo",

@@ -9,43 +9,79 @@
 <body>
     <div class="container">
         <header>
-            <h1>🎮 BonkData - Overwolf Sample App</h1>
+            <h1>🎮 BonkData </h1>
             <p class="subtitle">Application Electron avec support Overwolf</p>
         </header>
 
-        <main>
-            <div class="card">
-                <h2>Bienvenue !</h2>
-                <p>Cette application de démonstration utilise :</p>
-                <ul>
-                    <li>⚡ Electron.js pour l'interface desktop</li>
-                    <li>🎯 Overwolf API pour l'intégration gaming</li>
-                    <li>💻 Node.js pour la logique backend</li>
-                </ul>
-            </div>
+        <!-- Navigation Tabs -->
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="home">🏠 Accueil</button>
+            <button class="tab-button" data-tab="builds">⚔️ Builds</button>
+        </nav>
 
-            <div class="card">
-                <h3>Statut Overwolf</h3>
-                <div id="overwolf-status" class="status">
-                    <span class="status-indicator"></span>
-                    <span id="status-text">Vérification en cours...</span>
+        <main>
+            <!-- Home Tab -->
+            <div id="home-tab" class="tab-content active">
+                <div class="card">
+                    <h3>Statut Overwolf</h3>
+                    <div id="overwolf-status" class="status">
+                        <span class="status-indicator"></span>
+                        <span id="status-text">Vérification en cours...</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="card">
-                <h3>Informations</h3>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <strong>Version Electron:</strong>
-                        <span id="electron-version">Chargement...</span>
+            <!-- Builds Tab -->
+            <div id="builds-tab" class="tab-content">
+                <div class="card">
+                    <h2>📝 Créer un Build Personnalisé</h2>
+
+                    <!-- Character Selection -->
+                    <div class="build-section">
+                        <h3>1. Choisir un Personnage</h3>
+                        <div id="character-selection" class="selection-grid character-grid">
+                            <!-- Characters will be populated by JS -->
+                        </div>
+                        <div id="selected-character" class="selected-info">
+                            <span>Personnage sélectionné: <strong id="character-name">Aucun</strong></span>
+                            <span>Arme par défaut: <strong id="character-weapon">-</strong></span>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <strong>Version Node:</strong>
-                        <span id="node-version">Chargement...</span>
+
+                    <!-- Weapons Selection -->
+                    <div class="build-section">
+                        <h3>2. Choisir 3 Armes Supplémentaires</h3>
+                        <div id="weapon-selection" class="selection-grid weapon-grid">
+                            <!-- Weapons will be populated by JS -->
+                        </div>
+                        <div id="selected-weapons" class="selected-info">
+                            <span>Armes sélectionnées (3): <strong id="weapon-count">0/3</strong></span>
+                        </div>
                     </div>
-                    <div class="info-item">
-                        <strong>Version Chrome:</strong>
-                        <span id="chrome-version">Chargement...</span>
+
+                    <!-- Tomes Selection -->
+                    <div class="build-section">
+                        <h3>3. Choisir 4 Tomes</h3>
+                        <div id="tome-selection" class="selection-grid tome-grid">
+                            <!-- Tomes will be populated by JS -->
+                        </div>
+                        <div id="selected-tomes" class="selected-info">
+                            <span>Tomes sélectionnés (4): <strong id="tome-count">0/4</strong></span>
+                        </div>
+                    </div>
+
+                    <!-- Save Build Button -->
+                    <div class="build-actions">
+                        <button id="save-build-btn" class="btn-primary" disabled>💾 Sauvegarder le Build</button>
+                        <button id="reset-build-btn" class="btn-secondary">🔄 Réinitialiser</button>
+                    </div>
+                </div>
+
+                <!-- Saved Builds List -->
+                <div class="card">
+                    <h2>📚 Mes Builds Sauvegardés</h2>
+                    <div id="saved-builds-list" class="saved-builds-container">
+                        <p class="no-builds">Aucun build sauvegardé pour le moment.</p>
                     </div>
                 </div>
             </div>

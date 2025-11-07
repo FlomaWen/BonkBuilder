@@ -8,7 +8,7 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1200,
     height: 800,
-    title: 'BonkData - Overwolf Sample App',
+    title: 'BonkData',
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -18,10 +18,8 @@ function createWindow() {
     icon: path.join(__dirname, 'assets', 'icon.png')
   });
 
-  // Chargement de l'interface
   mainWindow.loadFile('index.html');
 
-  // Ouvrir les DevTools en mode développement
   if (process.argv.includes('--dev')) {
     mainWindow.webContents.openDevTools();
   }
