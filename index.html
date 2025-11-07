@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BonkData - Overwolf Sample App</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎮 BonkData - Overwolf Sample App</h1>
+            <p class="subtitle">Application Electron avec support Overwolf</p>
+        </header>
+
+        <main>
+            <div class="card">
+                <h2>Bienvenue !</h2>
+                <p>Cette application de démonstration utilise :</p>
+                <ul>
+                    <li>⚡ Electron.js pour l'interface desktop</li>
+                    <li>🎯 Overwolf API pour l'intégration gaming</li>
+                    <li>💻 Node.js pour la logique backend</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Statut Overwolf</h3>
+                <div id="overwolf-status" class="status">
+                    <span class="status-indicator"></span>
+                    <span id="status-text">Vérification en cours...</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>Informations</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <strong>Version Electron:</strong>
+                        <span id="electron-version">Chargement...</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Version Node:</strong>
+                        <span id="node-version">Chargement...</span>
+                    </div>
+                    <div class="info-item">
+                        <strong>Version Chrome:</strong>
+                        <span id="chrome-version">Chargement...</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>BonkData © 2025 - Sample Application</p>
+        </footer>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
+

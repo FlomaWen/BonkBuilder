@@ -1,0 +1,23 @@
+{
+  "name": "bonkdata-overwolf-app",
+  "version": "1.0.0",
+  "description": "Application Electron avec support Overwolf",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev"
+  },
+  "keywords": [
+    "electron",
+    "overwolf"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^27.0.0"
+  },
+  "dependencies": {
+    "@overwolf/overwolf-api-ts": "^1.0.0"
+  }
+}
+
