@@ -1,63 +1,41 @@
-# BonkData - Overwolf Sample App
+# BonkBuilder
 
-Application Electron de démonstration avec support Overwolf.
+Application Electron avec TypeScript pour créer et gérer des builds pour le jeu Bonk.io.
 
-## 🚀 Installation
+## Installation
 
 ```bash
 npm install
-```
-
-## 💻 Démarrage
-
-### Mode normal
-```bash
+npm run build
 npm start
 ```
 
-### Mode développement (avec DevTools)
+## Commandes
+
 ```bash
-npm run dev
+npm run build        # Compiler TypeScript
+npm run build:watch  # Compilation automatique
+npm start           # Lancer l'application
+npm run dev         # Mode développement
+npm run clean       # Nettoyer dist/
 ```
 
-## 📦 Structure du projet
+## Structure
 
 ```
-bonkData/
-├── main.js           # Processus principal Electron
-├── index.html        # Interface utilisateur
-├── styles.css        # Styles CSS
-├── renderer.js       # Logique du renderer process
-├── package.json      # Configuration npm
-└── README.md         # Documentation
+src/
+├── main/           # Processus principal Electron
+├── renderer/       # Interface utilisateur
+│   ├── services/  # Logique métier
+│   └── ui/        # Composants UI
+├── types/         # Types TypeScript
+└── constants/     # Données du jeu
 ```
 
-## 🎯 Fonctionnalités
+## Fonctionnalités
 
-- ✅ Application Electron fonctionnelle
-- ✅ Interface moderne et responsive
-- ✅ Support Overwolf (base)
-- ✅ DevTools intégrés en mode dev
-- ✅ Affichage des informations système
-
-## 🔧 Technologies utilisées
-
-- **Electron.js** - Framework pour applications desktop
-- **Overwolf API** - Intégration gaming
-- **Node.js** - Runtime JavaScript
-- **HTML/CSS** - Interface utilisateur
-
-## 📝 Notes
-
-Cette application est une base de démarrage. Pour une intégration complète avec Overwolf, vous devrez :
-1. Configurer le manifest Overwolf
-2. Implémenter les événements de jeux spécifiques
-3. Utiliser l'API Overwolf pour les overlays
-
-## 🤝 Développement
-
-Pour développer avec Overwolf :
-1. Installez Overwolf Desktop App
-2. Configurez le manifest.json pour Overwolf
-3. Utilisez l'Overwolf Developer Console
+- Créer des builds personnalisés (personnage + 3 armes + 4 tomes)
+- Sauvegarder et gérer plusieurs builds
+- Overlay en jeu pour afficher le build actif
+- 20 personnages, 29 armes, 23 tomes disponibles
 
