@@ -5,6 +5,7 @@
 import { BuildState, Character, Weapon, Tome, Build } from '../../types';
 import { CHARACTERS, WEAPONS, TOMES } from '../../constants/game-data';
 import { BuildService } from '../services/build-service';
+import { ipcRenderer } from 'electron';
 
 export class BuildUI {
   private buildState: BuildState;
@@ -36,6 +37,7 @@ export class BuildUI {
     this.buildNameInput = document.getElementById('build-name-input') as HTMLInputElement;
 
     this.initialize();
+    this.setupIPCListeners();
   }
 
   /**
@@ -58,6 +60,19 @@ export class BuildUI {
   }
 
   /**
+   * Configure les écouteurs IPC
+   */
+  private setupIPCListeners(): void {
+    // Quand l'overlay est prêt, lui envoyer le build actif
+    ipcRenderer.on('overlay-ready', () => {
+      const activeBuild = this.buildService.getActiveBuild();
+      if (activeBuild) {
+        ipcRenderer.send('set-active-build', activeBuild);
+      }
+    });
+  }
+
+  /**
    * Affiche les personnages
    */
   private renderCharacters(): void {
@@ -73,7 +88,7 @@ export class BuildUI {
    */
   private createCharacterCard(character: Character): HTMLElement {
     const card = document.createElement('div');
-    card.className = 'selection-card character-card';
+    card.className = 'selection-item character-card';
     card.innerHTML = `
       <img src="${character.image}" alt="${character.name}">
       <div class="card-info">
@@ -120,7 +135,7 @@ export class BuildUI {
    */
   private createWeaponCard(weapon: Weapon): HTMLElement {
     const card = document.createElement('div');
-    card.className = 'selection-card weapon-card';
+    card.className = 'selection-item weapon-card';
     card.innerHTML = `
       <img src="${weapon.image}" alt="${weapon.name}">
       <div class="card-info">
@@ -170,7 +185,7 @@ export class BuildUI {
    */
   private createTomeCard(tome: Tome): HTMLElement {
     const card = document.createElement('div');
-    card.className = 'selection-card tome-card';
+    card.className = 'selection-item tome-card';
     card.innerHTML = `
       <img src="${tome.image}" alt="${tome.name}">
       <div class="card-info">
@@ -275,7 +290,7 @@ export class BuildUI {
     this.buildNameInput.value = '';
 
     // Désélectionne tous les éléments
-    document.querySelectorAll('.selection-card').forEach(card => {
+    document.querySelectorAll('.selection-item').forEach(card => {
       card.classList.remove('selected');
     });
 
@@ -293,19 +308,26 @@ export class BuildUI {
     if (!container) return;
 
     const builds = this.buildService.getAllBuilds();
+    const activeBuildId = this.buildService.getActiveBuildId();
 
     if (builds.length === 0) {
       container.innerHTML = '<p class="no-builds">Aucun build sauvegardé pour le moment.</p>';
       return;
     }
 
-    container.innerHTML = builds.map(build => this.createBuildCard(build)).join('');
+    container.innerHTML = builds.map(build => this.createBuildCard(build, build.id === activeBuildId)).join('');
 
-    // Ajoute les événements de suppression
+    // Ajoute les événements
     builds.forEach(build => {
       const deleteBtn = document.getElementById(`delete-${build.id}`);
+      const activateBtn = document.getElementById(`activate-${build.id}`);
+
       if (deleteBtn) {
         deleteBtn.addEventListener('click', () => this.deleteBuild(build.id));
+      }
+
+      if (activateBtn) {
+        activateBtn.addEventListener('click', () => this.activateBuild(build.id));
       }
     });
   }
@@ -313,10 +335,19 @@ export class BuildUI {
   /**
    * Crée une carte de build sauvegardé
    */
-  private createBuildCard(build: Build): string {
+  private createBuildCard(build: Build, isActive: boolean): string {
+    const activeClass = isActive ? 'active-build' : '';
+    const activeBadge = isActive ? '<span class="active-badge">✓ Actif</span>' : '';
+    const activateButton = isActive
+      ? ''
+      : `<button id="activate-${build.id}" class="btn-activate">🎮 Activer pour l'overlay</button>`;
+
     return `
-      <div class="saved-build-card">
-        <h3>${build.name}</h3>
+      <div class="saved-build-card ${activeClass}">
+        <div class="build-header">
+          <h3>${build.name}</h3>
+          ${activeBadge}
+        </div>
         <div class="build-details">
           <div class="build-character">
             <img src="${build.character.image}" alt="${build.character.name}">
@@ -331,9 +362,39 @@ export class BuildUI {
             </div>
           </div>
         </div>
-        <button id="delete-${build.id}" class="btn-delete">Supprimer</button>
+        <div class="build-actions">
+          ${activateButton}
+          <button id="delete-${build.id}" class="btn-delete">🗑️ Supprimer</button>
+        </div>
       </div>
     `;
+  }
+
+  /**
+   * Active un build pour l'overlay
+   */
+  private activateBuild(buildId: string): void {
+    const success = this.buildService.setActiveBuild(buildId);
+    if (success) {
+      // Récupérer le build complet pour l'envoyer à l'overlay
+      const build = this.buildService.getActiveBuild();
+      if (build) {
+        // Envoyer le build à l'overlay via IPC
+        ipcRenderer.send('set-active-build', build);
+      }
+
+      // Déclencher l'événement pour mettre à jour l'onglet Overlay
+      window.dispatchEvent(new Event('build-activated'));
+
+      this.renderSavedBuilds();
+
+      // Notification visuelle
+      const notification = document.createElement('div');
+      notification.className = 'notification success';
+      notification.textContent = '✓ Build activé pour l\'overlay !';
+      document.body.appendChild(notification);
+      setTimeout(() => notification.remove(), 3000);
+    }
   }
 
   /**
@@ -346,4 +407,3 @@ export class BuildUI {
     }
   }
 }
-

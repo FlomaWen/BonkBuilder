@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BonkData - Overwolf Sample App</title>
     <link rel="stylesheet" href="styles.css">
-    <script defer src="dist/renderer/index.js"></script>
 </head>
 <body>
     <div class="container">
@@ -128,6 +127,49 @@
                 </div>
 
                 <div class="card">
+                    <h2>🎯 Game Tracking</h2>
+
+                    <div id="capture-status-display" class="capture-status">
+                        <span class="status-icon">⚪</span>
+                        <span id="capture-status-text">Ready to track</span>
+                    </div>
+
+                    <div class="capture-controls">
+                        <button id="toggle-capture-btn" class="btn-primary btn-large">
+                            ▶️ Start Tracking MEGABONK
+                        </button>
+                    </div>
+
+                    <details class="capture-settings">
+                        <summary>Advanced Settings</summary>
+                        <div class="settings-grid">
+                            <label>
+                                Capture Interval:
+                                <input type="range" id="capture-interval" min="500" max="2000" step="100" value="500" />
+                                <span id="interval-display">500ms</span>
+                            </label>
+                            <label>
+                                OCR Confidence:
+                                <input type="range" id="ocr-confidence" min="50" max="90" step="5" value="60" />
+                                <span id="confidence-display">60%</span>
+                            </label>
+                            <label>
+                                Game Window Title:
+                                <input type="text" id="game-window-title" value="MEGABONK" />
+                            </label>
+                        </div>
+                    </details>
+
+                    <div class="info-box info">
+                        <span class="info-icon">ℹ️</span>
+                        <div>
+                            <h4>How it works</h4>
+                            <p>We monitor your MEGABONK game window and detect level-up screens. When you level up, suggestions appear in the overlay based on your active build!</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
                     <h2>📋 Guide de l'Overlay</h2>
                     <div class="overlay-guide">
                         <div class="guide-item">
@@ -161,7 +203,10 @@
         </footer>
     </div>
 
-    <script src="renderer.js"></script>
+    <script>
+        // Charger le code TypeScript compilé avec require() car nodeIntegration est activé
+        require('./dist/renderer/index.js');
+    </script>
 </body>
 </html>
 

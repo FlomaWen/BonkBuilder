@@ -171,6 +171,146 @@
             color: #00d9ff;
             font-weight: bold;
         }
+
+        /* Suggestion Panel Styles */
+        .suggestion-panel {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            border: 3px solid #fff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 8px 20px rgba(255, 107, 107, 0.5);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateY(-20px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        .suggestion-header {
+            text-align: center;
+            margin-bottom: 12px;
+        }
+
+        .suggestion-header h3 {
+            color: #fff;
+            font-size: 1.4rem;
+            margin-bottom: 5px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .suggestion-header p {
+            color: #ffe;
+            font-size: 0.9rem;
+        }
+
+        .suggestion-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .suggestion-item {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 8px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+            animation: fadeIn 0.4s ease-out;
+            transition: transform 0.2s ease;
+        }
+
+        .suggestion-item:hover {
+            transform: scale(1.05);
+        }
+
+        .suggestion-item.priority-high {
+            border: 3px solid #00ff88;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.6);
+        }
+
+        .suggestion-item.priority-medium {
+            border: 2px solid #ffd700;
+        }
+
+        .suggestion-item.priority-low {
+            border: 1px solid #ccc;
+            opacity: 0.8;
+        }
+
+        .suggestion-rank {
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, #00d9ff, #0088cc);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+        }
+
+        .suggestion-item img {
+            width: 50px;
+            height: 50px;
+            object-fit: contain;
+            flex-shrink: 0;
+        }
+
+        .suggestion-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .suggestion-name {
+            font-weight: bold;
+            color: #1a1a2e;
+            font-size: 0.95rem;
+        }
+
+        .suggestion-reason {
+            color: #666;
+            font-size: 0.8rem;
+            margin-top: 2px;
+        }
+
+        .suggestion-priority-badge {
+            background: linear-gradient(135deg, #00ff88, #00cc70);
+            color: #1a1a2e;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        .priority-medium .suggestion-priority-badge {
+            background: linear-gradient(135deg, #ffd700, #ffed4e);
+        }
+
+        .priority-low .suggestion-priority-badge {
+            background: linear-gradient(135deg, #ccc, #aaa);
+        }
     </style>
 </head>
 <body>
@@ -178,6 +318,11 @@
         <div class="overlay-header">
             <h2 id="build-title">🎮 BonkData Overlay</h2>
             <p id="build-subtitle">Build actif en jeu</p>
+        </div>
+
+        <!-- Suggestion Panel (hidden by default, shown when level-up detected) -->
+        <div id="suggestion-panel" class="suggestion-panel" style="display: none;">
+            <!-- Populated by JavaScript when level-up detected -->
         </div>
 
         <div id="no-build-message" class="no-build" style="display: none;">
@@ -206,7 +351,9 @@
         </div>
     </div>
 
-    <script defer src="dist/renderer/overlay.js"></script>
+    <script>
+        // Charger le code TypeScript compilé avec require() car nodeIntegration est activé
+        require('./dist/renderer/overlay.js');</script>
     <script>
         // Script inline remplacé par dist/renderer/overlay.js
         // Voir src/renderer/overlay.ts pour le code source

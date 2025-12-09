@@ -46,3 +46,48 @@ export interface WindowConfig {
   opacity?: number;
 }
 
+// Game capture configuration
+export interface CaptureConfig {
+  enabled: boolean;
+  intervalMs: number;
+  ocrConfidence: number;
+  targetWindowTitle: string;
+}
+
+// OCR detection result
+export interface OCRResult {
+  text: string;
+  confidence: number;
+  bbox: { x: number; y: number; width: number; height: number };
+}
+
+// Detected item from game
+export interface DetectedItem {
+  text: string;
+  matchedItem: Character | Weapon | Tome | null;
+  matchType: 'character' | 'weapon' | 'tome' | 'unknown';
+  confidence: number;
+}
+
+// Level-up screen detection
+export interface LevelUpDetection {
+  isLevelUp: boolean;
+  detectedItems: DetectedItem[];
+  timestamp: Date;
+}
+
+// Suggestion for player
+export interface ItemSuggestion {
+  item: Character | Weapon | Tome;
+  priority: 'high' | 'medium' | 'low';
+  reason: string;
+  matchedText: string;
+}
+
+// Capture status events
+export type CaptureStatus =
+  | { status: 'idle' }
+  | { status: 'searching'; message: string }
+  | { status: 'capturing'; windowTitle: string }
+  | { status: 'error'; error: string };
+

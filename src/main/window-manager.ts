@@ -22,6 +22,7 @@ export class WindowManager {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        partition: 'persist:bonkbuilder',
       },
       icon: path.join(__dirname, '..', '..', 'assets', 'icon.png'),
     });
@@ -67,6 +68,7 @@ export class WindowManager {
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
+        partition: 'persist:bonkbuilder',
       },
     });
 

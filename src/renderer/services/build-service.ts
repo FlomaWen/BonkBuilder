@@ -5,7 +5,8 @@
 import { Build, BuildState } from '../../types';
 
 export class BuildService {
-  private static readonly STORAGE_KEY = 'bonk_saved_builds';
+  private static readonly STORAGE_KEY = 'bonkdata_builds';
+  private static readonly ACTIVE_BUILD_KEY = 'bonkdata_active_build';
 
   /**
    * Sauvegarde un build
@@ -63,6 +64,10 @@ export class BuildService {
       return false; // Build non trouvé
     }
 
+    if (this.getActiveBuildId() === buildId) {
+      this.clearActiveBuild();
+    }
+
     this.saveToStorage(filteredBuilds);
     return true;
   }
@@ -92,6 +97,48 @@ export class BuildService {
 
   private saveToStorage(builds: Build[]): void {
     localStorage.setItem(BuildService.STORAGE_KEY, JSON.stringify(builds));
+  }
+
+  /**
+   * Définit le build actif pour l'overlay
+   */
+  public setActiveBuild(buildId: string): boolean {
+    const builds = this.getAllBuilds();
+    const build = builds.find(b => b.id === buildId);
+
+    if (!build) {
+      return false;
+    }
+
+    localStorage.setItem(BuildService.ACTIVE_BUILD_KEY, buildId);
+    return true;
+  }
+
+  /**
+   * Récupère l'ID du build actif
+   */
+  public getActiveBuildId(): string | null {
+    return localStorage.getItem(BuildService.ACTIVE_BUILD_KEY);
+  }
+
+  /**
+   * Récupère le build actif complet
+   */
+  public getActiveBuild(): Build | null {
+    const activeBuildId = this.getActiveBuildId();
+    if (!activeBuildId) {
+      return null;
+    }
+
+    const builds = this.getAllBuilds();
+    return builds.find(b => b.id === activeBuildId) || null;
+  }
+
+  /**
+   * Désactive le build actif
+   */
+  public clearActiveBuild(): void {
+    localStorage.removeItem(BuildService.ACTIVE_BUILD_KEY);
   }
 
   private generateId(): string {
