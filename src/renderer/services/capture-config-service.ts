@@ -3,7 +3,7 @@ import { DEFAULT_CAPTURE_CONFIG, CAPTURE_SETTINGS_KEY } from '../../constants/ca
 
 export class CaptureConfigService {
   /**
-   * Get capture configuration from localStorage
+   * Récupère la configuration de capture depuis localStorage
    */
   getConfig(): CaptureConfig {
     try {
@@ -12,20 +12,27 @@ export class CaptureConfigService {
         return JSON.parse(stored);
       }
     } catch (error) {
-      console.error('Error loading capture config:', error);
+      console.error('Erreur lors du chargement de la config de capture:', error);
     }
 
     return { ...DEFAULT_CAPTURE_CONFIG };
   }
 
   /**
-   * Save capture configuration to localStorage
+   * Sauvegarde la configuration de capture dans localStorage
    */
   saveConfig(config: CaptureConfig): void {
     try {
       localStorage.setItem(CAPTURE_SETTINGS_KEY, JSON.stringify(config));
     } catch (error) {
-      console.error('Error saving capture config:', error);
+      console.error('Erreur lors de la sauvegarde de la config de capture:', error);
     }
+  }
+
+  /**
+   * Réinitialise la configuration aux valeurs par défaut
+   */
+  resetToDefaults(): void {
+    this.saveConfig({ ...DEFAULT_CAPTURE_CONFIG });
   }
 }

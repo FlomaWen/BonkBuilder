@@ -103,14 +103,21 @@ export class BuildService {
    * Définit le build actif pour l'overlay
    */
   public setActiveBuild(buildId: string): boolean {
+    console.log('BuildService: setActiveBuild appelé avec:', buildId);
+
     const builds = this.getAllBuilds();
+    console.log('BuildService: Builds disponibles:', builds.map(b => ({ id: b.id, name: b.name })));
+
     const build = builds.find(b => b.id === buildId);
+    console.log('BuildService: Build trouvé:', build);
 
     if (!build) {
+      console.error('BuildService: Build non trouvé !');
       return false;
     }
 
     localStorage.setItem(BuildService.ACTIVE_BUILD_KEY, buildId);
+    console.log('BuildService: Build activé dans localStorage:', buildId);
     return true;
   }
 

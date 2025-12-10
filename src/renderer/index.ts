@@ -6,10 +6,12 @@ import { TabManager } from './ui/tab-manager';
 import { BuildUI } from './ui/build-ui';
 import { OverlayManager } from './ui/overlay-manager';
 import { GameCaptureUI } from './ui/game-capture-ui';
+import { TitleBar } from './ui/titlebar';
 
 class RendererApp {
   constructor() {
     // Initialisation des composants UI
+    new TitleBar();
     new TabManager();
     new BuildUI();
     new OverlayManager();

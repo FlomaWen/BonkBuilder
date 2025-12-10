@@ -1,105 +1,85 @@
+/**
+ * Gestionnaire de l'interface de capture d'écran
+ */
+
 import { ipcRenderer } from 'electron';
-import { CaptureStatus, CaptureConfig } from '../../types';
 import { CaptureConfigService } from '../services/capture-config-service';
+import { CaptureStatus, GameEvent } from '../../types';
+import { MIN_INTERVAL_MS, MAX_INTERVAL_MS } from '../../constants/capture-config';
 
 export class GameCaptureUI {
-  private captureButton: HTMLButtonElement | null;
-  private statusText: HTMLElement | null;
-  private statusIcon: HTMLElement | null;
   private configService: CaptureConfigService;
   private isCapturing: boolean = false;
 
-  // Settings inputs
-  private intervalInput: HTMLInputElement | null;
-  private confidenceInput: HTMLInputElement | null;
+  // Éléments DOM
+  private captureButton: HTMLElement | null;
+  private statusIcon: HTMLElement | null;
+  private statusText: HTMLElement | null;
   private windowTitleInput: HTMLInputElement | null;
+  private intervalInput: HTMLInputElement | null;
   private intervalDisplay: HTMLElement | null;
-  private confidenceDisplay: HTMLElement | null;
 
   constructor() {
     this.configService = new CaptureConfigService();
 
-    // Get DOM elements
-    this.captureButton = document.getElementById('toggle-capture-btn') as HTMLButtonElement;
+    // Récupérer les éléments DOM
+    this.captureButton = document.getElementById('capture-button');
+    this.statusIcon = document.getElementById('capture-status-icon');
     this.statusText = document.getElementById('capture-status-text');
-    this.statusIcon = document.querySelector('.capture-status .status-icon');
-
-    // Settings inputs
-    this.intervalInput = document.getElementById('capture-interval') as HTMLInputElement;
-    this.confidenceInput = document.getElementById('ocr-confidence') as HTMLInputElement;
-    this.windowTitleInput = document.getElementById('game-window-title') as HTMLInputElement;
+    this.windowTitleInput = document.getElementById('window-title-input') as HTMLInputElement;
+    this.intervalInput = document.getElementById('interval-input') as HTMLInputElement;
     this.intervalDisplay = document.getElementById('interval-display');
-    this.confidenceDisplay = document.getElementById('confidence-display');
 
     this.initialize();
+    this.setupTestButton();
   }
 
   /**
-   * Initialize UI and event listeners
+   * Initialise l'interface et les événements
    */
   private initialize(): void {
-    this.loadSettings();
-    this.setupEventListeners();
-    this.registerIPCListeners();
-  }
-
-  /**
-   * Load settings from config service
-   */
-  private loadSettings(): void {
+    // Charger la configuration sauvegardée
     const config = this.configService.getConfig();
+
+    if (this.windowTitleInput) {
+      this.windowTitleInput.value = config.targetWindowTitle;
+    }
 
     if (this.intervalInput) {
       this.intervalInput.value = config.intervalMs.toString();
       this.updateIntervalDisplay(config.intervalMs);
     }
 
-    if (this.confidenceInput) {
-      this.confidenceInput.value = (config.ocrConfidence * 100).toString();
-      this.updateConfidenceDisplay(config.ocrConfidence);
-    }
-
-    if (this.windowTitleInput) {
-      this.windowTitleInput.value = config.targetWindowTitle;
-    }
-  }
-
-  /**
-   * Setup event listeners
-   */
-  private setupEventListeners(): void {
-    // Toggle capture button
+    // Événements des contrôles
     if (this.captureButton) {
       this.captureButton.addEventListener('click', () => this.toggleCapture());
     }
 
-    // Settings inputs
     if (this.intervalInput) {
       this.intervalInput.addEventListener('input', (e) => {
-        const value = parseInt((e.target as HTMLInputElement).value);
+        const value = parseInt((e.target as HTMLInputElement).value, 10);
         this.updateIntervalDisplay(value);
+        this.saveConfig();
       });
     }
 
-    if (this.confidenceInput) {
-      this.confidenceInput.addEventListener('input', (e) => {
-        const value = parseInt((e.target as HTMLInputElement).value) / 100;
-        this.updateConfidenceDisplay(value);
-      });
+    if (this.windowTitleInput) {
+      this.windowTitleInput.addEventListener('change', () => this.saveConfig());
     }
-  }
 
-  /**
-   * Register IPC listeners
-   */
-  private registerIPCListeners(): void {
-    ipcRenderer.on('game-capture-status', (_event, status: CaptureStatus) => {
+    // Écouter les mises à jour de statut depuis le main process
+    ipcRenderer.on('capture-status-changed', (_event, status: CaptureStatus) => {
       this.updateStatus(status);
+    });
+
+    // Écouter les événements du jeu
+    ipcRenderer.on('game-event', (_event, event: GameEvent) => {
+      this.handleGameEvent(event);
     });
   }
 
   /**
-   * Toggle capture on/off
+   * Bascule l'état de la capture (start/stop)
    */
   private toggleCapture(): void {
     if (this.isCapturing) {
@@ -110,104 +90,122 @@ export class GameCaptureUI {
   }
 
   /**
-   * Start capture
+   * Démarre la capture
    */
   private startCapture(): void {
-    const config = this.getCurrentConfig();
+    const config = this.configService.getConfig();
+    config.enabled = true;
 
-    // Save config
-    this.configService.saveConfig(config);
-
-    // Send IPC to main process
-    ipcRenderer.send('start-game-capture', config);
+    // Envoyer la commande au main process
+    ipcRenderer.send('start-capture', config);
 
     this.isCapturing = true;
-    this.updateButtonState();
+    this.updateCaptureButton();
   }
 
   /**
-   * Stop capture
+   * Arrête la capture
    */
   private stopCapture(): void {
-    ipcRenderer.send('stop-game-capture');
+    ipcRenderer.send('stop-capture');
+
     this.isCapturing = false;
-    this.updateButtonState();
-    this.updateStatus({ status: 'idle' });
+    this.updateCaptureButton();
   }
 
   /**
-   * Get current configuration from UI
+   * Met à jour l'affichage du bouton de capture
    */
-  private getCurrentConfig(): CaptureConfig {
-    return {
-      enabled: true,
-      intervalMs: parseInt(this.intervalInput?.value || '500'),
-      ocrConfidence: parseInt(this.confidenceInput?.value || '60') / 100,
-      targetWindowTitle: this.windowTitleInput?.value || 'MEGABONK',
-    };
-  }
-
-  /**
-   * Update button state
-   */
-  private updateButtonState(): void {
+  private updateCaptureButton(): void {
     if (!this.captureButton) return;
 
     if (this.isCapturing) {
-      this.captureButton.textContent = '⏸️ Stop Tracking';
+      this.captureButton.textContent = '⏹️ Arrêter la capture';
       this.captureButton.classList.add('active');
     } else {
-      this.captureButton.textContent = '▶️ Start Tracking MEGABONK';
+      this.captureButton.textContent = '▶️ Démarrer la capture';
       this.captureButton.classList.remove('active');
     }
   }
 
   /**
-   * Update status display
+   * Met à jour le statut de capture
    */
   private updateStatus(status: CaptureStatus): void {
-    if (!this.statusText || !this.statusIcon) return;
+    if (!this.statusIcon || !this.statusText) return;
 
+    // Mettre à jour l'icône
+    this.statusIcon.className = 'status-icon ' + status.status;
+
+    // Mettre à jour le texte
+    let statusMessage = '';
     switch (status.status) {
       case 'idle':
-        this.statusIcon.textContent = '⚪';
-        this.statusText.textContent = 'Ready to track';
+        statusMessage = status.message || 'Prêt à capturer';
         break;
-
       case 'searching':
-        this.statusIcon.textContent = '🔍';
-        this.statusText.textContent = status.message;
+        statusMessage = status.message || 'Recherche de la fenêtre...';
         break;
-
       case 'capturing':
-        this.statusIcon.textContent = '🟢';
-        this.statusText.textContent = `Monitoring ${status.windowTitle}`;
+        statusMessage = `En cours : ${status.windowTitle || 'Capture active'}`;
         break;
-
       case 'error':
-        this.statusIcon.textContent = '🔴';
-        this.statusText.textContent = `Error: ${status.error}`;
+        statusMessage = `Erreur : ${status.error || 'Erreur inconnue'}`;
+        // Réinitialiser l'état de capture en cas d'erreur
         this.isCapturing = false;
-        this.updateButtonState();
+        this.updateCaptureButton();
         break;
     }
+
+    this.statusText.textContent = statusMessage;
   }
 
   /**
-   * Update interval display
+   * Gère les événements du jeu
+   */
+  private handleGameEvent(event: GameEvent): void {
+    // Pour le moment, on log juste les événements
+    console.log('Événement du jeu:', event);
+
+    // Dans le futur, on pourra afficher des notifications, mettre à jour l'overlay, etc.
+  }
+
+  /**
+   * Met à jour l'affichage de l'intervalle
    */
   private updateIntervalDisplay(value: number): void {
-    if (this.intervalDisplay) {
-      this.intervalDisplay.textContent = `${value}ms`;
-    }
+    if (!this.intervalDisplay) return;
+
+    this.intervalDisplay.textContent = `${value}ms`;
   }
 
   /**
-   * Update confidence display
+   * Sauvegarde la configuration
    */
-  private updateConfidenceDisplay(value: number): void {
-    if (this.confidenceDisplay) {
-      this.confidenceDisplay.textContent = `${Math.round(value * 100)}%`;
+  private saveConfig(): void {
+    if (!this.windowTitleInput || !this.intervalInput) return;
+
+    const config = this.configService.getConfig();
+
+    config.targetWindowTitle = this.windowTitleInput.value;
+    config.intervalMs = Math.max(
+      MIN_INTERVAL_MS,
+      Math.min(MAX_INTERVAL_MS, parseInt(this.intervalInput.value, 10))
+    );
+
+    this.configService.saveConfig(config);
+  }
+
+  /**
+   * Configure le bouton de test de level-up
+   */
+  private setupTestButton(): void {
+    const testButton = document.getElementById('test-levelup-button');
+    if (testButton) {
+      testButton.addEventListener('click', () => {
+        console.log('🧪 Envoi d\'un événement de test de level-up');
+        ipcRenderer.send('trigger-test-levelup');
+      });
     }
   }
 }

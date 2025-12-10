@@ -11,11 +11,117 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --titlebar-height: 32px;
+        }
+
+        /* Scrollbars personnalisées */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #00d9ff, #0088cc);
+            border-radius: 5px;
+            border: 2px solid transparent;
+            background-clip: padding-box;
+            transition: background 0.2s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #00ff88, #00d9ff);
+            background-clip: padding-box;
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        /* Barre de titre personnalisée */
+        .titlebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--titlebar-height);
+            background: rgba(26, 26, 46, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(0, 217, 255, 0.3);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 9999;
+            user-select: none;
+        }
+
+        .titlebar-drag-region {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            height: 100%;
+            padding: 0 12px;
+            -webkit-app-region: drag;
+        }
+
+        .titlebar-icon {
+            font-size: 14px;
+            margin-right: 8px;
+        }
+
+        .titlebar-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #00d9ff;
+            letter-spacing: 0.5px;
+        }
+
+        .titlebar-controls {
+            display: flex;
+            height: 100%;
+            -webkit-app-region: no-drag;
+        }
+
+        .titlebar-button {
+            width: 46px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            color: #888;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            outline: none;
+        }
+
+        .titlebar-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .titlebar-button.close-button:hover {
+            background: #ef4444;
+            color: white;
+        }
+
+        .titlebar-button svg {
+            width: 12px;
+            height: 12px;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
             color: #e8e8e8;
             padding: 10px;
+            padding-top: calc(var(--titlebar-height) + 10px);
             overflow-y: auto;
         }
 
@@ -106,6 +212,26 @@
         .item-card.default {
             border-color: rgba(255, 215, 0, 0.5);
             background: rgba(255, 215, 0, 0.05);
+        }
+
+        .item-card.highlight-detected {
+            border: 3px solid #00ff88;
+            background: rgba(0, 255, 136, 0.15);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+            animation: borderBlink 0.8s infinite;
+            transform: scale(1.08);
+            z-index: 10;
+        }
+
+        @keyframes borderBlink {
+            0%, 100% {
+                border-color: #00ff88;
+                box-shadow: 0 0 20px rgba(0, 255, 136, 0.8), 0 0 40px rgba(0, 255, 136, 0.4);
+            }
+            50% {
+                border-color: #00ff00;
+                box-shadow: 0 0 30px rgba(0, 255, 0, 1), 0 0 60px rgba(0, 255, 0, 0.6);
+            }
         }
 
         .item-card img {
@@ -314,6 +440,26 @@
     </style>
 </head>
 <body>
+    <!-- Barre de titre personnalisée -->
+    <div class="titlebar">
+        <div class="titlebar-drag-region">
+            <div class="titlebar-icon">🎮</div>
+            <div class="titlebar-title">BonkData Overlay</div>
+        </div>
+        <div class="titlebar-controls">
+            <button class="titlebar-button minimize-button" id="minimize-btn" title="Réduire">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="0" y="5" width="12" height="2" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="titlebar-button close-button" id="close-btn" title="Fermer">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <div class="overlay-container">
         <div class="overlay-header">
             <h2 id="build-title">🎮 BonkData Overlay</h2>

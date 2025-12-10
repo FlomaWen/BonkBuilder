@@ -12,23 +12,71 @@ export class IpcHandlers {
   }
 
   public registerHandlers(): void {
+    this.registerWindowHandlers();
     this.registerOverlayHandlers();
     this.registerBuildHandlers();
-    this.registerGameCaptureHandlers();
+    this.registerCaptureHandlers();
   }
 
   /**
-   * Setup listeners from orchestrator to forward to windows
+   * Handlers pour les contrôles de la fenêtre
    */
-  private setupGameCaptureListeners(): void {
-    // Status updates → send to main window
-    this.gameCaptureOrchestrator.on('status-changed', (status) => {
-      this.sendToMainWindow('game-capture-status', status);
+  private registerWindowHandlers(): void {
+    ipcMain.on('window-minimize', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        mainWindow.minimize();
+      }
     });
 
-    // Level-up detected → send to overlay window
-    this.gameCaptureOrchestrator.on('level-up-detected', (suggestions) => {
-      this.sendToOverlay('level-up-detected', suggestions);
+    ipcMain.on('window-toggle-maximize', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        if (mainWindow.isMaximized()) {
+          mainWindow.unmaximize();
+        } else {
+          mainWindow.maximize();
+        }
+      }
+    });
+
+    ipcMain.on('window-close', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow) {
+        mainWindow.close();
+      }
+    });
+
+    ipcMain.handle('window-is-maximized', () => {
+      const mainWindow = this.windowManager.getMainWindow();
+      return mainWindow ? mainWindow.isMaximized() : false;
+    });
+  }
+
+  /**
+   * Configure les écouteurs pour le GameCaptureOrchestrator
+   */
+  private setupGameCaptureListeners(): void {
+    // Transmettre les changements de statut vers la fenêtre principale
+    this.gameCaptureOrchestrator.on('status-changed', (status) => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('capture-status-changed', status);
+      }
+    });
+
+    // Transmettre les événements du jeu vers la fenêtre principale et l'overlay
+    this.gameCaptureOrchestrator.on('game-event', (event) => {
+      const mainWindow = this.windowManager.getMainWindow();
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('game-event', event);
+      }
+
+      // Transmettre également vers l'overlay
+      const overlayWindow = this.windowManager.getOverlayWindow();
+      if (overlayWindow && !overlayWindow.isDestroyed()) {
+        overlayWindow.webContents.send('game-event', event);
+      }
     });
   }
 
@@ -48,6 +96,13 @@ export class IpcHandlers {
     ipcMain.on('close-overlay', () => {
       this.windowManager.closeOverlayWindow();
     });
+
+    ipcMain.on('overlay-minimize', () => {
+      const overlayWindow = this.windowManager.getOverlayWindow();
+      if (overlayWindow) {
+        overlayWindow.minimize();
+      }
+    });
   }
 
   private registerBuildHandlers(): void {
@@ -57,42 +112,47 @@ export class IpcHandlers {
         overlayWindow.webContents.send('active-build-updated', buildData);
       }
 
-      // Also update the orchestrator with the active build
+      // Mettre à jour le build actif dans le GameCaptureOrchestrator
       this.gameCaptureOrchestrator.setActiveBuild(buildData);
     });
   }
 
-  private registerGameCaptureHandlers(): void {
-    // Start game capture
-    ipcMain.on('start-game-capture', async (_event, config: CaptureConfig) => {
+  /**
+   * Handlers pour la capture d'écran
+   */
+  private registerCaptureHandlers(): void {
+    // Démarrer la capture
+    ipcMain.on('start-capture', async (_event, config: CaptureConfig) => {
       try {
         await this.gameCaptureOrchestrator.startMonitoring(config);
       } catch (error) {
-        this.sendToMainWindow('game-capture-status', {
-          status: 'error',
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
+        const mainWindow = this.windowManager.getMainWindow();
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('capture-status-changed', {
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Erreur inconnue',
+          });
+        }
       }
     });
 
-    // Stop game capture
-    ipcMain.on('stop-game-capture', () => {
+    // Arrêter la capture
+    ipcMain.on('stop-capture', () => {
       this.gameCaptureOrchestrator.stopMonitoring();
     });
-  }
 
-  private sendToMainWindow(channel: string, data: any): void {
-    const mainWindow = this.windowManager.getMainWindow();
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.webContents.send(channel, data);
-    }
-  }
+    // Récupérer le statut de la capture
+    ipcMain.handle('get-capture-status', () => {
+      return {
+        isActive: this.gameCaptureOrchestrator.isActive(),
+      };
+    });
 
-  private sendToOverlay(channel: string, data: any): void {
-    const overlayWindow = this.windowManager.getOverlayWindow();
-    if (overlayWindow && !overlayWindow.isDestroyed()) {
-      overlayWindow.webContents.send(channel, data);
-    }
+    // Handler pour tester le level-up manuellement (pour le debug)
+    ipcMain.on('trigger-test-levelup', () => {
+      console.log('🧪 Test de level-up déclenché manuellement');
+      this.gameCaptureOrchestrator.triggerTestLevelUp();
+    });
   }
 }
 

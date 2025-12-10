@@ -7,6 +7,31 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Barre de titre personnalisée -->
+    <div class="titlebar">
+        <div class="titlebar-drag-region">
+            <div class="titlebar-icon">🎮</div>
+            <div class="titlebar-title">BonkData</div>
+        </div>
+        <div class="titlebar-controls">
+            <button class="titlebar-button minimize-button" id="minimize-btn" title="Réduire">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="0" y="5" width="12" height="2" fill="currentColor"/>
+                </svg>
+            </button>
+            <button class="titlebar-button maximize-button" id="maximize-btn" title="Agrandir">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <rect x="1" y="1" width="10" height="10" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                </svg>
+            </button>
+            <button class="titlebar-button close-button" id="close-btn" title="Fermer">
+                <svg width="12" height="12" viewBox="0 0 12 12">
+                    <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
     <div class="container">
         <header>
             <h1>🎮 BonkData </h1>
@@ -126,45 +151,60 @@
                     </div>
                 </div>
 
+                <!-- Capture d'écran -->
                 <div class="card">
-                    <h2>🎯 Game Tracking</h2>
+                    <h2>📸 Capture d'Écran</h2>
 
-                    <div id="capture-status-display" class="capture-status">
-                        <span class="status-icon">⚪</span>
-                        <span id="capture-status-text">Ready to track</span>
+                    <div class="capture-status-container">
+                        <div id="capture-status-icon" class="status-icon idle"></div>
+                        <span id="capture-status-text">Prêt à capturer</span>
                     </div>
 
                     <div class="capture-controls">
-                        <button id="toggle-capture-btn" class="btn-primary btn-large">
-                            ▶️ Start Tracking MEGABONK
+                        <button id="capture-button" class="btn-primary btn-large">
+                            ▶️ Démarrer la capture
+                        </button>
+                        <button id="test-levelup-button" class="btn-secondary" style="margin-top: 10px;">
+                            🧪 Tester Level-Up
                         </button>
                     </div>
 
-                    <details class="capture-settings">
-                        <summary>Advanced Settings</summary>
-                        <div class="settings-grid">
-                            <label>
-                                Capture Interval:
-                                <input type="range" id="capture-interval" min="500" max="2000" step="100" value="500" />
-                                <span id="interval-display">500ms</span>
-                            </label>
-                            <label>
-                                OCR Confidence:
-                                <input type="range" id="ocr-confidence" min="50" max="90" step="5" value="60" />
-                                <span id="confidence-display">60%</span>
-                            </label>
-                            <label>
-                                Game Window Title:
-                                <input type="text" id="game-window-title" value="MEGABONK" />
-                            </label>
+                    <div class="capture-settings">
+                        <h3>⚙️ Configuration</h3>
+
+                        <div class="setting-row">
+                            <label for="window-title-input">Titre de la fenêtre du jeu :</label>
+                            <input
+                                type="text"
+                                id="window-title-input"
+                                class="setting-input"
+                                placeholder="Ex: MEGABONK"
+                                value="MEGABONK"
+                            />
                         </div>
-                    </details>
+
+                        <div class="setting-row">
+                            <label for="interval-input">Intervalle de capture :</label>
+                            <div class="slider-container">
+                                <input
+                                    type="range"
+                                    id="interval-input"
+                                    class="setting-slider"
+                                    min="100"
+                                    max="2000"
+                                    step="100"
+                                    value="500"
+                                />
+                                <span id="interval-display" class="slider-value">500ms</span>
+                            </div>
+                        </div>
+                    </div>
 
                     <div class="info-box info">
                         <span class="info-icon">ℹ️</span>
                         <div>
-                            <h4>How it works</h4>
-                            <p>We monitor your MEGABONK game window and detect level-up screens. When you level up, suggestions appear in the overlay based on your active build!</p>
+                            <h4>Comment ça marche</h4>
+                            <p>La capture d'écran utilise l'API Electron pour capturer la fenêtre du jeu. Les frames capturées peuvent être analysées pour détecter des événements, des stats, ou d'autres informations du jeu.</p>
                         </div>
                     </div>
                 </div>

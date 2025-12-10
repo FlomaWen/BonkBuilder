@@ -16,7 +16,7 @@ export const OVERLAY_WINDOW_CONFIG: WindowConfig = {
   title: 'BonkData - Overlay',
   backgroundColor: '#1a1a2e',
   alwaysOnTop: true,
-  frame: true,
+  frame: false,
   resizable: true,
   skipTaskbar: false,
   opacity: 0.95,

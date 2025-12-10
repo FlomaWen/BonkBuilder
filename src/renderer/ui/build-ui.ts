@@ -20,6 +20,8 @@ export class BuildUI {
   private buildNameInput: HTMLInputElement;
 
   constructor() {
+    console.log('BuildUI: Initialisation...');
+
     this.buildState = {
       character: null,
       weapons: [],
@@ -36,8 +38,19 @@ export class BuildUI {
     this.resetButton = document.getElementById('reset-build-btn')!;
     this.buildNameInput = document.getElementById('build-name-input') as HTMLInputElement;
 
+    console.log('BuildUI: Éléments DOM récupérés', {
+      characterGrid: !!this.characterGrid,
+      weaponGrid: !!this.weaponGrid,
+      tomeGrid: !!this.tomeGrid,
+      saveButton: !!this.saveButton,
+      resetButton: !!this.resetButton,
+      buildNameInput: !!this.buildNameInput
+    });
+
     this.initialize();
     this.setupIPCListeners();
+
+    console.log('BuildUI: Initialisé avec succès');
   }
 
   /**
@@ -76,11 +89,13 @@ export class BuildUI {
    * Affiche les personnages
    */
   private renderCharacters(): void {
+    console.log(`BuildUI: Rendu de ${CHARACTERS.length} personnages`);
     this.characterGrid.innerHTML = '';
     CHARACTERS.forEach(character => {
       const card = this.createCharacterCard(character);
       this.characterGrid.appendChild(card);
     });
+    console.log('BuildUI: Personnages affichés');
   }
 
   /**
@@ -105,6 +120,8 @@ export class BuildUI {
    * Sélectionne un personnage
    */
   private selectCharacter(character: Character, cardElement: HTMLElement): void {
+    console.log('BuildUI: Personnage sélectionné:', character.name);
+
     // Désélectionne tous les personnages
     document.querySelectorAll('.character-card').forEach(card => {
       card.classList.remove('selected');
@@ -114,9 +131,40 @@ export class BuildUI {
     cardElement.classList.add('selected');
     this.buildState.character = character;
 
+    // Désélectionner l'arme par défaut si elle était dans les armes supplémentaires
+    const defaultWeaponIndex = this.buildState.weapons.findIndex(w => w.id === character.defaultWeaponId);
+    if (defaultWeaponIndex > -1) {
+      this.buildState.weapons.splice(defaultWeaponIndex, 1);
+      console.log('⚠️ Arme par défaut retirée des armes supplémentaires');
+    }
+
     // Met à jour l'affichage
     this.updateCharacterInfo();
+    this.updateWeaponCardsState();
     this.updateSaveButton();
+  }
+
+  /**
+   * Met à jour l'état visuel des cartes d'armes (désactive l'arme par défaut)
+   */
+  private updateWeaponCardsState(): void {
+    document.querySelectorAll('.weapon-card').forEach(card => {
+      const weaponId = (card as HTMLElement).dataset.weaponId;
+
+      // Réinitialiser l'état
+      card.classList.remove('disabled', 'selected');
+
+      // Si c'est l'arme par défaut du personnage, la désactiver
+      if (this.buildState.character && weaponId === this.buildState.character.defaultWeaponId) {
+        card.classList.add('disabled');
+      } else {
+        // Vérifier si l'arme est sélectionnée
+        const isSelected = this.buildState.weapons.some(w => w.id === weaponId);
+        if (isSelected) {
+          card.classList.add('selected');
+        }
+      }
+    });
   }
 
   /**
@@ -136,6 +184,7 @@ export class BuildUI {
   private createWeaponCard(weapon: Weapon): HTMLElement {
     const card = document.createElement('div');
     card.className = 'selection-item weapon-card';
+    card.dataset.weaponId = weapon.id; // Ajouter l'ID pour pouvoir identifier la carte
     card.innerHTML = `
       <img src="${weapon.image}" alt="${weapon.name}">
       <div class="card-info">
@@ -151,6 +200,12 @@ export class BuildUI {
    * Sélectionne/désélectionne une arme
    */
   private toggleWeapon(weapon: Weapon, cardElement: HTMLElement): void {
+    // Vérifier si cette arme est l'arme par défaut du personnage sélectionné
+    if (this.buildState.character && weapon.id === this.buildState.character.defaultWeaponId) {
+      console.log('⚠️ Impossible de sélectionner l\'arme par défaut du personnage');
+      return;
+    }
+
     const index = this.buildState.weapons.findIndex(w => w.id === weapon.id);
 
     if (index > -1) {
@@ -310,6 +365,11 @@ export class BuildUI {
     const builds = this.buildService.getAllBuilds();
     const activeBuildId = this.buildService.getActiveBuildId();
 
+    console.log('BuildUI: Rendu des builds sauvegardés:', {
+      count: builds.length,
+      activeBuildId
+    });
+
     if (builds.length === 0) {
       container.innerHTML = '<p class="no-builds">Aucun build sauvegardé pour le moment.</p>';
       return;
@@ -317,17 +377,41 @@ export class BuildUI {
 
     container.innerHTML = builds.map(build => this.createBuildCard(build, build.id === activeBuildId)).join('');
 
+    console.log('BuildUI: HTML généré, recherche des boutons...');
+
     // Ajoute les événements
     builds.forEach(build => {
+      const isActive = build.id === activeBuildId;
       const deleteBtn = document.getElementById(`delete-${build.id}`);
       const activateBtn = document.getElementById(`activate-${build.id}`);
 
+      console.log(`BuildUI: Configuration des boutons pour build ${build.id}:`, {
+        isActive,
+        deleteBtn: !!deleteBtn,
+        activateBtn: !!activateBtn,
+        activateBtnId: `activate-${build.id}`
+      });
+
       if (deleteBtn) {
+        console.log(`BuildUI: Ajout de l'événement click sur le bouton delete pour ${build.id}`);
         deleteBtn.addEventListener('click', () => this.deleteBuild(build.id));
+      } else {
+        console.error(`BuildUI: Bouton delete non trouvé pour ${build.id}`);
       }
 
       if (activateBtn) {
-        activateBtn.addEventListener('click', () => this.activateBuild(build.id));
+        console.log(`BuildUI: Ajout de l'événement click sur le bouton activate pour ${build.id}`);
+        activateBtn.addEventListener('click', () => {
+          console.log('BuildUI: ===== CLIC SUR ACTIVER =====');
+          console.log('BuildUI: Clic sur le bouton activer pour:', build.id);
+          this.activateBuild(build.id);
+        });
+      } else {
+        if (!isActive) {
+          console.error(`BuildUI: Bouton activate non trouvé pour ${build.id} (build non actif)`);
+        } else {
+          console.log(`BuildUI: Pas de bouton activate pour ${build.id} (build déjà actif)`);
+        }
       }
     });
   }
@@ -341,6 +425,11 @@ export class BuildUI {
     const activateButton = isActive
       ? ''
       : `<button id="activate-${build.id}" class="btn-activate">🎮 Activer pour l'overlay</button>`;
+
+    console.log(`BuildUI: Création de la carte pour build ${build.id}:`, {
+      isActive,
+      hasActivateButton: !isActive
+    });
 
     return `
       <div class="saved-build-card ${activeClass}">
@@ -374,12 +463,19 @@ export class BuildUI {
    * Active un build pour l'overlay
    */
   private activateBuild(buildId: string): void {
+    console.log('BuildUI: Tentative d\'activation du build:', buildId);
+
     const success = this.buildService.setActiveBuild(buildId);
+    console.log('BuildUI: setActiveBuild result:', success);
+
     if (success) {
       // Récupérer le build complet pour l'envoyer à l'overlay
       const build = this.buildService.getActiveBuild();
+      console.log('BuildUI: Build récupéré:', build);
+
       if (build) {
         // Envoyer le build à l'overlay via IPC
+        console.log('BuildUI: Envoi du build à l\'overlay via IPC');
         ipcRenderer.send('set-active-build', build);
       }
 
@@ -394,6 +490,10 @@ export class BuildUI {
       notification.textContent = '✓ Build activé pour l\'overlay !';
       document.body.appendChild(notification);
       setTimeout(() => notification.remove(), 3000);
+
+      console.log('BuildUI: Build activé avec succès !');
+    } else {
+      console.error('BuildUI: Échec de l\'activation du build');
     }
   }
 

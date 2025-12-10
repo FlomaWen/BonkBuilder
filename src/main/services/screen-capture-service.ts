@@ -4,49 +4,47 @@ import { CaptureConfig, CaptureStatus } from '../../types';
 
 export class ScreenCaptureService extends EventEmitter {
   private captureInterval: NodeJS.Timeout | null = null;
+  private currentWindow: DesktopCapturerSource | null = null;
   private config: CaptureConfig | null = null;
-  private isCapturing: boolean = false;
-  private gameWindow: DesktopCapturerSource | null = null;
 
   /**
-   * Start capturing
+   * Démarre la capture d'écran
    */
   async startCapture(config: CaptureConfig): Promise<boolean> {
-    if (this.isCapturing) {
-      return true;
-    }
-
     this.config = config;
-    this.isCapturing = true;
 
-    // Try to find the game window
-    this.emitStatus({ status: 'searching', message: 'Looking for game window...' });
+    // Trouver la fenêtre du jeu
+    this.emitStatus({ status: 'searching', message: `Recherche de la fenêtre "${config.targetWindowTitle}"...` });
 
-    const found = await this.findGameWindow();
-    if (!found) {
+    this.currentWindow = await this.findGameWindow(config.targetWindowTitle);
+
+    if (!this.currentWindow) {
       this.emitStatus({
         status: 'error',
-        error: `Game window "${config.targetWindowTitle}" not found. Make sure the game is running.`,
+        error: `Fenêtre "${config.targetWindowTitle}" introuvable. Assurez-vous que le jeu est lancé.`
       });
-      this.isCapturing = false;
       return false;
     }
 
-    // Start capture loop
+    this.emitStatus({
+      status: 'capturing',
+      windowTitle: this.currentWindow.name,
+      message: `Capture en cours de "${this.currentWindow.name}"`
+    });
+
+    // Démarrer la capture périodique
     this.captureInterval = setInterval(() => {
       this.captureFrame();
     }, config.intervalMs);
 
-    this.emitStatus({
-      status: 'capturing',
-      windowTitle: this.gameWindow?.name || config.targetWindowTitle,
-    });
+    // Capturer immédiatement la première frame
+    this.captureFrame();
 
     return true;
   }
 
   /**
-   * Stop capturing
+   * Arrête la capture d'écran
    */
   stopCapture(): void {
     if (this.captureInterval) {
@@ -54,92 +52,96 @@ export class ScreenCaptureService extends EventEmitter {
       this.captureInterval = null;
     }
 
-    this.isCapturing = false;
-    this.gameWindow = null;
-    this.emitStatus({ status: 'idle' });
+    this.currentWindow = null;
+    this.config = null;
+
+    this.emitStatus({ status: 'idle', message: 'Capture arrêtée' });
   }
 
   /**
-   * Find game window
+   * Trouve la fenêtre du jeu par son titre
    */
-  private async findGameWindow(): Promise<boolean> {
+  private async findGameWindow(title: string): Promise<DesktopCapturerSource | null> {
     try {
       const sources = await desktopCapturer.getSources({
         types: ['window'],
         thumbnailSize: { width: 1920, height: 1080 },
-        fetchWindowIcons: false,
       });
 
-      // Find window by title (case-insensitive, partial match)
-      const targetTitle = this.config?.targetWindowTitle.toLowerCase() || 'megabonk';
-      this.gameWindow =
-        sources.find(source => source.name.toLowerCase().includes(targetTitle)) || null;
+      // Recherche case-insensitive et correspondance partielle
+      const targetLower = title.toLowerCase();
+      const found = sources.find(source =>
+        source.name.toLowerCase().includes(targetLower)
+      );
 
-      return this.gameWindow !== null;
+      return found || null;
     } catch (error) {
-      console.error('Error finding game window:', error);
-      return false;
+      console.error('Erreur lors de la recherche de fenêtre:', error);
+      return null;
     }
   }
 
   /**
-   * Capture single frame
+   * Capture une frame de la fenêtre actuelle
    */
   private async captureFrame(): Promise<void> {
-    if (!this.gameWindow) {
-      // Try to re-find the window
-      const found = await this.findGameWindow();
-      if (!found) {
-        return;
-      }
+    if (!this.config || !this.currentWindow) {
+      return;
     }
 
     try {
+      // Re-capturer les sources pour obtenir la dernière frame
       const sources = await desktopCapturer.getSources({
         types: ['window'],
         thumbnailSize: { width: 1920, height: 1080 },
-        fetchWindowIcons: false,
       });
 
-      // Re-find the window (it might have changed ID)
-      const targetTitle = this.config?.targetWindowTitle.toLowerCase() || 'megabonk';
-      const currentWindow = sources.find(source => source.name.toLowerCase().includes(targetTitle));
+      const window = sources.find(s => s.id === this.currentWindow!.id);
 
-      if (!currentWindow) {
-        this.emitStatus({
-          status: 'error',
-          error: 'Game window lost. Make sure the game is still running.',
-        });
+      if (!window) {
+        // La fenêtre a été fermée, essayer de la retrouver
+        console.warn('Fenêtre perdue, tentative de récupération...');
+        const newWindow = await this.findGameWindow(this.config.targetWindowTitle);
+
+        if (newWindow) {
+          this.currentWindow = newWindow;
+          this.emitStatus({
+            status: 'capturing',
+            windowTitle: newWindow.name,
+            message: `Fenêtre retrouvée : "${newWindow.name}"`
+          });
+        } else {
+          this.emitStatus({
+            status: 'error',
+            error: 'Fenêtre perdue et impossible à retrouver'
+          });
+          this.stopCapture();
+        }
         return;
       }
 
-      // Get thumbnail and convert to buffer
-      const thumbnail = currentWindow.thumbnail;
+      // Convertir le thumbnail en buffer PNG
+      const thumbnail = window.thumbnail;
+      const pngBuffer = thumbnail.toPNG();
 
-      // Check if thumbnail is empty
-      if (thumbnail.isEmpty()) {
-        console.warn('Thumbnail is empty, skipping frame');
-        return;
-      }
-
-      const imageBuffer = thumbnail.toPNG();
-
-      // Check if buffer is valid
-      if (!imageBuffer || imageBuffer.length === 0) {
-        console.warn('Image buffer is empty, skipping frame');
-        return;
-      }
-
-      // For OCR, we don't need to extract ROI - use full image
-      // This avoids issues with small images
-      this.emit('frame-captured', imageBuffer);
+      // Émettre la frame capturée
+      this.emit('frame-captured', {
+        buffer: pngBuffer,
+        width: thumbnail.getSize().width,
+        height: thumbnail.getSize().height,
+        timestamp: new Date(),
+      });
     } catch (error) {
-      console.error('Error capturing frame:', error);
+      console.error('Erreur lors de la capture de frame:', error);
+      this.emitStatus({
+        status: 'error',
+        error: error instanceof Error ? error.message : 'Erreur de capture'
+      });
     }
   }
 
   /**
-   * Emit status change
+   * Émet un changement de statut
    */
   private emitStatus(status: CaptureStatus): void {
     this.emit('status-changed', status);

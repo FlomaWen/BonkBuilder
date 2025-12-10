@@ -19,6 +19,7 @@ export class WindowManager {
       height: MAIN_WINDOW_CONFIG.height,
       title: MAIN_WINDOW_CONFIG.title,
       backgroundColor: MAIN_WINDOW_CONFIG.backgroundColor,
+      frame: false, // Retirer la barre de titre Windows
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
@@ -54,22 +55,23 @@ export class WindowManager {
     }
 
     this.overlayWindow = new BrowserWindow({
-      width: OVERLAY_WINDOW_CONFIG.width,
-      height: OVERLAY_WINDOW_CONFIG.height,
-      x: OVERLAY_POSITION.x,
-      y: OVERLAY_POSITION.y,
-      title: OVERLAY_WINDOW_CONFIG.title,
-      backgroundColor: OVERLAY_WINDOW_CONFIG.backgroundColor,
-      frame: OVERLAY_WINDOW_CONFIG.frame,
-      alwaysOnTop: OVERLAY_WINDOW_CONFIG.alwaysOnTop,
-      skipTaskbar: OVERLAY_WINDOW_CONFIG.skipTaskbar,
-      resizable: OVERLAY_WINDOW_CONFIG.resizable,
-      opacity: OVERLAY_WINDOW_CONFIG.opacity,
-      webPreferences: {
-        nodeIntegration: true,
-        contextIsolation: false,
-        partition: 'persist:bonkbuilder',
-      },
+        titleBarStyle: 'hidden',
+          width: OVERLAY_WINDOW_CONFIG.width,
+          height: OVERLAY_WINDOW_CONFIG.height,
+          x: OVERLAY_POSITION.x,
+          y: OVERLAY_POSITION.y,
+          title: OVERLAY_WINDOW_CONFIG.title,
+          backgroundColor: OVERLAY_WINDOW_CONFIG.backgroundColor,
+          frame: OVERLAY_WINDOW_CONFIG.frame,
+          alwaysOnTop: OVERLAY_WINDOW_CONFIG.alwaysOnTop,
+          skipTaskbar: OVERLAY_WINDOW_CONFIG.skipTaskbar,
+          resizable: OVERLAY_WINDOW_CONFIG.resizable,
+          opacity: OVERLAY_WINDOW_CONFIG.opacity,
+          webPreferences: {
+            nodeIntegration: true,
+            contextIsolation: false,
+            partition: 'persist:bonkbuilder',
+          },
     });
 
     this.overlayWindow.loadFile(path.join(__dirname, '..', '..', 'overlay.html'));

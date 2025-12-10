@@ -46,48 +46,31 @@ export interface WindowConfig {
   opacity?: number;
 }
 
-// Game capture configuration
+// Capture d'écran et analyse
 export interface CaptureConfig {
   enabled: boolean;
   intervalMs: number;
-  ocrConfidence: number;
   targetWindowTitle: string;
 }
 
-// OCR detection result
-export interface OCRResult {
-  text: string;
-  confidence: number;
-  bbox: { x: number; y: number; width: number; height: number };
+export interface CaptureStatus {
+  status: 'idle' | 'searching' | 'capturing' | 'error';
+  message?: string;
+  windowTitle?: string;
+  error?: string;
 }
 
-// Detected item from game
 export interface DetectedItem {
-  text: string;
-  matchedItem: Character | Weapon | Tome | null;
-  matchType: 'character' | 'weapon' | 'tome' | 'unknown';
+  itemId: string;
+  type: 'character' | 'weapon' | 'tome';
+  name: string;
   confidence: number;
+  detectionTime: Date;
 }
 
-// Level-up screen detection
-export interface LevelUpDetection {
-  isLevelUp: boolean;
-  detectedItems: DetectedItem[];
+export interface GameEvent {
   timestamp: Date;
+  type: 'level-up' | 'level-up-ended' | 'build-items-detected' | 'item-detected' | 'game-start' | 'game-end';
+  data: any;
 }
-
-// Suggestion for player
-export interface ItemSuggestion {
-  item: Character | Weapon | Tome;
-  priority: 'high' | 'medium' | 'low';
-  reason: string;
-  matchedText: string;
-}
-
-// Capture status events
-export type CaptureStatus =
-  | { status: 'idle' }
-  | { status: 'searching'; message: string }
-  | { status: 'capturing'; windowTitle: string }
-  | { status: 'error'; error: string };
 

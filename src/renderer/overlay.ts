@@ -1,15 +1,18 @@
 
-import { Build, ItemSuggestion } from '../types';
+import { Build, GameEvent } from '../types';
 import { WEAPONS } from '../constants/game-data';
 import { ipcRenderer } from 'electron';
+import { OverlayTitleBar } from './ui/overlay-titlebar';
 
 class OverlayRenderer {
   private noBuildDiv: HTMLElement | null;
   private buildDisplay: HTMLElement | null;
   private suggestionPanel: HTMLElement | null;
-  private suggestionTimeout: NodeJS.Timeout | null = null;
 
   constructor() {
+    // Initialiser la barre de titre
+    new OverlayTitleBar();
+
     this.noBuildDiv = document.getElementById('no-build-message');
     this.buildDisplay = document.getElementById('build-display');
     this.suggestionPanel = document.getElementById('suggestion-panel');
@@ -29,8 +32,10 @@ class OverlayRenderer {
       }
     });
 
-    // Écouter les suggestions de level-up
-    this.registerSuggestionListener();
+    // Écouter les événements du jeu
+    ipcRenderer.on('game-event', (_event, event: GameEvent) => {
+      this.handleGameEvent(event);
+    });
   }
 
   private loadActiveBuild(): void {
@@ -138,71 +143,106 @@ class OverlayRenderer {
   }
 
   /**
-   * Register listener for level-up suggestions
+   * Gère les événements du jeu
    */
-  private registerSuggestionListener(): void {
-    ipcRenderer.on('level-up-detected', (_event, suggestions: ItemSuggestion[]) => {
-      this.displaySuggestions(suggestions);
+  private handleGameEvent(event: GameEvent): void {
+    console.log('Game event received:', event);
+
+    if (event.type === 'level-up') {
+      this.showLevelUpMessage();
+    } else if (event.type === 'level-up-ended') {
+      this.hideLevelUpMessage();
+      this.clearHighlightedItems();
+    } else if (event.type === 'build-items-detected') {
+      this.highlightDetectedItems(event.data.items);
+    }
+  }
+
+  /**
+   * Affiche l'indicateur de level-up
+   */
+  private showLevelUpMessage(): void {
+    if (!this.suggestionPanel) return;
+
+    console.log('🎉 Affichage de l\'indicateur de level-up dans l\'overlay');
+
+    // Afficher le panneau avec un style très visible
+    this.suggestionPanel.style.display = 'block';
+    this.suggestionPanel.innerHTML = `
+      <div class="suggestion-header">
+        <h3 style="font-size: 2rem; text-transform: uppercase; animation: pulse 1s infinite;">
+          YOUHOU
+        </h3>
+        <p style="font-size: 1.2rem; margin-top: 10px;">
+          Level-up détecté !
+        </p>
+      </div>
+    `;
+  }
+
+  /**
+   * Masque l'indicateur de level-up
+   */
+  private hideLevelUpMessage(): void {
+    if (!this.suggestionPanel) return;
+
+    console.log('✅ Masquage de l\'indicateur de level-up (texte disparu)');
+    this.suggestionPanel.style.display = 'none';
+  }
+
+  /**
+   * Met en surbrillance les items détectés sur l'écran
+   */
+  private highlightDetectedItems(detectedItems: string[]): void {
+    console.log('🎯 Items à mettre en surbrillance:', detectedItems);
+
+    // Nettoyer d'abord tous les highlights
+    this.clearHighlightedItems();
+
+    // Pour chaque item détecté, ajouter la classe de highlight
+    detectedItems.forEach((itemName) => {
+      // Chercher dans les armes
+      const weaponsDisplay = document.getElementById('weapons-display');
+      if (weaponsDisplay) {
+        const itemCards = weaponsDisplay.querySelectorAll('.item-card');
+        itemCards.forEach((card) => {
+          const nameElement = card.querySelector('.item-name');
+          if (nameElement) {
+            const cardItemName = nameElement.textContent?.toUpperCase().replace(/\s+/g, '') || '';
+            if (cardItemName === itemName) {
+              card.classList.add('highlight-detected');
+              console.log('✅ Arme mise en surbrillance:', nameElement.textContent);
+            }
+          }
+        });
+      }
+
+      // Chercher dans les tomes
+      const tomesDisplay = document.getElementById('tomes-display');
+      if (tomesDisplay) {
+        const itemCards = tomesDisplay.querySelectorAll('.item-card');
+        itemCards.forEach((card) => {
+          const nameElement = card.querySelector('.item-name');
+          if (nameElement) {
+            const cardItemName = nameElement.textContent?.toUpperCase().replace(/\s+/g, '') || '';
+            if (cardItemName === itemName) {
+              card.classList.add('highlight-detected');
+              console.log('✅ Tome mis en surbrillance:', nameElement.textContent);
+            }
+          }
+        });
+      }
     });
   }
 
   /**
-   * Display suggestions in overlay
+   * Retire la surbrillance de tous les items
    */
-  private displaySuggestions(suggestions: ItemSuggestion[]): void {
-    if (!this.suggestionPanel) return;
-
-    // Clear existing timeout
-    if (this.suggestionTimeout) {
-      clearTimeout(this.suggestionTimeout);
-    }
-
-    if (suggestions.length === 0) {
-      this.suggestionPanel.style.display = 'none';
-      return;
-    }
-
-    this.suggestionPanel.style.display = 'block';
-
-    // Sort by priority (already sorted from engine, but double-check)
-    const sorted = [...suggestions].sort((a, b) => {
-      const priorityOrder = { high: 0, medium: 1, low: 2 };
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
+  private clearHighlightedItems(): void {
+    const allItemCards = document.querySelectorAll('.item-card.highlight-detected');
+    allItemCards.forEach((card) => {
+      card.classList.remove('highlight-detected');
     });
-
-    // Render suggestions
-    const html = sorted
-      .map((suggestion, index) => {
-        const priorityClass = `priority-${suggestion.priority}`;
-
-        return `
-        <div class="suggestion-item ${priorityClass}" style="animation-delay: ${index * 0.1}s">
-          <div class="suggestion-rank">${index + 1}</div>
-          <img src="${suggestion.item.image}" alt="${suggestion.item.name}" />
-          <div class="suggestion-details">
-            <div class="suggestion-name">${suggestion.item.name}</div>
-            <div class="suggestion-reason">${suggestion.reason}</div>
-          </div>
-          <div class="suggestion-priority-badge">${suggestion.priority.toUpperCase()}</div>
-        </div>
-      `;
-      })
-      .join('');
-
-    this.suggestionPanel.innerHTML = `
-      <div class="suggestion-header">
-        <h3>LEVEL UP!</h3>
-        <p>Pick the best item:</p>
-      </div>
-      <div class="suggestion-list">${html}</div>
-    `;
-
-    // Auto-hide after 10 seconds
-    this.suggestionTimeout = setTimeout(() => {
-      if (this.suggestionPanel) {
-        this.suggestionPanel.style.display = 'none';
-      }
-    }, 10000);
   }
 }
 

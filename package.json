@@ -34,7 +34,6 @@
   },
   "dependencies": {
     "@overwolf/overwolf-api-ts": "^1.0.0",
-    "fuzzball": "^2.2.3",
     "sharp": "^0.34.5",
     "tesseract.js": "^6.0.1"
   }
