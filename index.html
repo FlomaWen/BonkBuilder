@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BonkData - Overwolf Sample App</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -34,15 +37,15 @@
 
     <div class="container">
         <header>
-            <h1>🎮 BonkData </h1>
+            <h1>BonkData</h1>
             <p class="subtitle">Application Electron avec support Overwolf</p>
         </header>
 
         <!-- Navigation Tabs -->
         <nav class="tabs">
-            <button class="tab-button active" data-tab="home">🏠 Accueil</button>
-            <button class="tab-button" data-tab="builds">⚔️ Builds</button>
-            <button class="tab-button" data-tab="overlay">🎮 Overlay</button>
+            <button class="tab-button active" data-tab="home">Accueil</button>
+            <button class="tab-button" data-tab="builds">Builds</button>
+            <button class="tab-button" data-tab="overlay">Overlay</button>
         </nav>
 
         <main>
@@ -145,94 +148,14 @@
 
                     <div class="overlay-actions">
                         <button id="open-overlay-window" class="btn-primary btn-large">
-                            🪟 Ouvrir l'overlay en fenêtre séparée
+                            🪟 Ouvrir l'overlay
                         </button>
-                        <p class="hint-text">Cette fenêtre reste toujours au-dessus pour que vous puissiez jouer tout en voyant votre build.</p>
+                        <p class="hint-text">L'overlay s'ouvre en fenêtre séparée et démarre automatiquement la capture d'écran.</p>
                     </div>
-                </div>
-
-                <!-- Capture d'écran -->
-                <div class="card">
-                    <h2>📸 Capture d'Écran</h2>
 
                     <div class="capture-status-container">
                         <div id="capture-status-icon" class="status-icon idle"></div>
-                        <span id="capture-status-text">Prêt à capturer</span>
-                    </div>
-
-                    <div class="capture-controls">
-                        <button id="capture-button" class="btn-primary btn-large">
-                            ▶️ Démarrer la capture
-                        </button>
-                        <button id="test-levelup-button" class="btn-secondary" style="margin-top: 10px;">
-                            🧪 Tester Level-Up
-                        </button>
-                    </div>
-
-                    <div class="capture-settings">
-                        <h3>⚙️ Configuration</h3>
-
-                        <div class="setting-row">
-                            <label for="window-title-input">Titre de la fenêtre du jeu :</label>
-                            <input
-                                type="text"
-                                id="window-title-input"
-                                class="setting-input"
-                                placeholder="Ex: MEGABONK"
-                                value="MEGABONK"
-                            />
-                        </div>
-
-                        <div class="setting-row">
-                            <label for="interval-input">Intervalle de capture :</label>
-                            <div class="slider-container">
-                                <input
-                                    type="range"
-                                    id="interval-input"
-                                    class="setting-slider"
-                                    min="100"
-                                    max="2000"
-                                    step="100"
-                                    value="500"
-                                />
-                                <span id="interval-display" class="slider-value">500ms</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="info-box info">
-                        <span class="info-icon">ℹ️</span>
-                        <div>
-                            <h4>Comment ça marche</h4>
-                            <p>La capture d'écran utilise l'API Electron pour capturer la fenêtre du jeu. Les frames capturées peuvent être analysées pour détecter des événements, des stats, ou d'autres informations du jeu.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <h2>📋 Guide de l'Overlay</h2>
-                    <div class="overlay-guide">
-                        <div class="guide-item">
-                            <span class="guide-icon">1️⃣</span>
-                            <div>
-                                <h4>Activez un build</h4>
-                                <p>Sélectionnez un build dans l'onglet "Builds" et cliquez sur "Activer"</p>
-                            </div>
-                        </div>
-                        <div class="guide-item">
-                            <span class="guide-icon">2️⃣</span>
-                            <div>
-                                <h4>Consultez votre build</h4>
-                                <p>Votre build actif s'affiche ici avec tous les items à obtenir</p>
-                            </div>
-                        </div>
-                        <div class="guide-item">
-                            <span class="guide-icon">3️⃣</span>
-                            <div>
-                                <h4>En jeu</h4>
-                                <p>Utilisez cet overlay pendant votre partie pour savoir quels items prendre</p>
-                            </div>
-                        </div>
+                        <span id="capture-status-text">La capture démarrera à l'ouverture de l'overlay</span>
                     </div>
                 </div>
             </div>

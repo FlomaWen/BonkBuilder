@@ -79,7 +79,17 @@ export class OverlayManager {
   }
 
   private openOverlay(): void {
+    // Envoyer la commande d'ouverture de l'overlay
     ipcRenderer.send('open-overlay');
+
+    // Démarrer automatiquement la capture avec intervalle 300ms
+    setTimeout(() => {
+      ipcRenderer.send('start-capture', {
+        targetWindowTitle: 'MEGABONK',
+        intervalMs: 300,
+        enabled: true
+      });
+    }, 1000); // Attendre 1s que l'overlay soit prêt
   }
 
   private closeOverlay(): void {

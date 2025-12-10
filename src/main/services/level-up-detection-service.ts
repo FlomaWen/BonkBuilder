@@ -10,7 +10,6 @@ export class LevelUpDetectionService extends EventEmitter {
   private lastDetectionTime: number = 0;
   private readonly DETECTION_COOLDOWN_MS = 2000; // 2 secondes entre chaque détection
   private frameCounter: number = 0;
-  private readonly DEBUG_MODE = true; // Active le mode debug pour tester
   private worker: Tesseract.Worker | null = null;
   private readonly TARGET_TEXT = 'AMELIORATIONS PROPOSEES'; // Texte à détecter
   private readonly SIMILARITY_THRESHOLD = 0.65; // 65% de similarité minimum (plus tolérant)
@@ -195,9 +194,7 @@ export class LevelUpDetectionService extends EventEmitter {
         detectedItems.push(itemName);
         alreadyDetected.add(itemName);
 
-        if (this.DEBUG_MODE) {
-          console.log(`✅ Item détecté: ${itemName} (${(bestSimilarity * 100).toFixed(1)}% - variation: "${bestVariation}" - match: "${bestMatch}")`);
-        }
+        console.log(`✅ Item détecté: ${itemName} (${(bestSimilarity * 100).toFixed(1)}% - variation: "${bestVariation}" - match: "${bestMatch}")`);
       }
     }
 
@@ -219,7 +216,7 @@ export class LevelUpDetectionService extends EventEmitter {
       // Créer un worker Tesseract avec la langue française
       this.worker = await Tesseract.createWorker('fra', 1, {
         logger: (info) => {
-          if (info.status === 'recognizing text' && this.DEBUG_MODE) {
+          if (info.status === 'recognizing text') {
             console.log(`OCR Progress: ${Math.round(info.progress * 100)}%`);
           }
         },
@@ -242,11 +239,7 @@ export class LevelUpDetectionService extends EventEmitter {
 
       this.isInitialized = true;
       console.log('✅ Service de détection de level-up initialisé avec OCR');
-
-      if (this.DEBUG_MODE) {
-        console.log('⚠️ Mode DEBUG activé - Appuyez sur F8 dans le jeu pour simuler un level-up');
-        console.log(`📝 Recherche du texte: "${this.TARGET_TEXT}"`);
-      }
+      console.log(`📝 Recherche du texte: "${this.TARGET_TEXT}"`);
     } catch (error) {
       console.error('Erreur lors de l\'initialisation du service:', error);
       throw error;
@@ -368,10 +361,8 @@ export class LevelUpDetectionService extends EventEmitter {
         .toUpperCase();
 
       // Log pour debug (afficher le texte brut et nettoyé)
-      if (this.DEBUG_MODE) {
-        console.log('🔍 Texte détecté (brut):', data.text.substring(0, 150));
-        console.log('🔍 Texte détecté (nettoyé):', detectedText.substring(0, 150));
-      }
+      console.log('🔍 Texte détecté (brut):', data.text.substring(0, 150));
+      console.log('🔍 Texte détecté (nettoyé):', detectedText.substring(0, 150));
 
       // Version sans espaces pour la comparaison
       const detectedTextNoSpaces = detectedText.replace(/\s+/g, '');
@@ -440,9 +431,7 @@ export class LevelUpDetectionService extends EventEmitter {
         if (this.isInLevelUp) {
           this.consecutiveNonDetections++;
 
-          if (this.DEBUG_MODE) {
-            console.log(`⏳ Level-up non détecté (${this.consecutiveNonDetections}/${this.NON_DETECTION_THRESHOLD})`);
-          }
+          console.log(`⏳ Level-up non détecté (${this.consecutiveNonDetections}/${this.NON_DETECTION_THRESHOLD})`);
 
           if (this.consecutiveNonDetections >= this.NON_DETECTION_THRESHOLD) {
             // Le texte a disparu, le level-up est terminé
@@ -492,3 +481,4 @@ export class LevelUpDetectionService extends EventEmitter {
     return this.isInitialized;
   }
 }
+
