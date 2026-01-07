@@ -1,7 +1,9 @@
 # BonkBuilder
 
-Application Electron avec TypeScript pour créer et gérer des builds pour le jeu megabonk.
+## PRESENTATION DU PROJET
 
+BonkBuilder est une application web conçue pour aider les joueurs à créer et gérer des builds personnalisés pour le jeu vidéo "Bonk.io". Elle permet aux utilisateurs de sélectionner un personnage, des armes et des tomes, puis de sauvegarder et d'afficher leur build en jeu via un overlay
+afin de les aider à choisir quels items utiliser pendant leurs parties et de ne pas se tromper dans le build !
 ## Installation
 
 ```bash
