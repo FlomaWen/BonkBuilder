@@ -1,6 +1,6 @@
 # BonkBuilder
 
-Application Electron avec TypeScript pour créer et gérer des builds pour le jeu Bonk.io.
+Application Electron avec TypeScript pour créer et gérer des builds pour le jeu megabonk.
 
 ## Installation
 
@@ -19,19 +19,6 @@ npm start           # Lancer l'application
 npm run dev         # Mode développement
 npm run clean       # Nettoyer dist/
 ```
-
-## Structure
-
-```
-src/
-├── main/           # Processus principal Electron
-├── renderer/       # Interface utilisateur
-│   ├── services/  # Logique métier
-│   └── ui/        # Composants UI
-├── types/         # Types TypeScript
-└── constants/     # Données du jeu
-```
-
 ## Fonctionnalités
 
 - Créer des builds personnalisés (personnage + 3 armes + 4 tomes)
