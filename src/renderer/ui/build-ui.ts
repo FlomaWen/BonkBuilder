@@ -5,7 +5,6 @@
 import { BuildState, Character, Weapon, Tome, Build } from '../../types';
 import { CHARACTERS, WEAPONS, TOMES } from '../../constants/game-data';
 import { BuildService } from '../services/build-service';
-import { ipcRenderer } from 'electron';
 
 export class BuildUI {
   private buildState: BuildState;
@@ -77,10 +76,10 @@ export class BuildUI {
    */
   private setupIPCListeners(): void {
     // Quand l'overlay est prêt, lui envoyer le build actif
-    ipcRenderer.on('overlay-ready', () => {
+    window.electronAPI.build.onOverlayReady(() => {
       const activeBuild = this.buildService.getActiveBuild();
       if (activeBuild) {
-        ipcRenderer.send('set-active-build', activeBuild);
+        window.electronAPI.build.setActive(activeBuild);
       }
     });
   }
@@ -476,7 +475,7 @@ export class BuildUI {
       if (build) {
         // Envoyer le build à l'overlay via IPC
         console.log('BuildUI: Envoi du build à l\'overlay via IPC');
-        ipcRenderer.send('set-active-build', build);
+        window.electronAPI.build.setActive(build);
       }
 
       // Déclencher l'événement pour mettre à jour l'onglet Overlay

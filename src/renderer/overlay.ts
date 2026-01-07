@@ -1,252 +1,229 @@
+/**
+ * Script de l'overlay - Affiche le build actif et les suggestions de level-up
+ */
 
-import { Build, GameEvent } from '../types';
-import { WEAPONS } from '../constants/game-data';
-import { ipcRenderer } from 'electron';
-import { OverlayTitleBar } from './ui/overlay-titlebar';
+// Initialiser l'API Electron
+import './services/electron-api';
+import { Build, GameEvent, Character, Weapon, Tome } from '../types';
 
-class OverlayRenderer {
-  private noBuildDiv: HTMLElement | null;
+class OverlayApp {
   private buildDisplay: HTMLElement | null;
+  private noBuildMessage: HTMLElement | null;
+  private characterDisplay: HTMLElement | null;
+  private weaponsDisplay: HTMLElement | null;
+  private tomesDisplay: HTMLElement | null;
+  private buildTitle: HTMLElement | null;
   private suggestionPanel: HTMLElement | null;
+  private currentBuild: Build | null = null;
 
   constructor() {
-    // Initialiser la barre de titre
-    new OverlayTitleBar();
-
-    this.noBuildDiv = document.getElementById('no-build-message');
     this.buildDisplay = document.getElementById('build-display');
+    this.noBuildMessage = document.getElementById('no-build-message');
+    this.characterDisplay = document.getElementById('character-display');
+    this.weaponsDisplay = document.getElementById('weapons-display');
+    this.tomesDisplay = document.getElementById('tomes-display');
+    this.buildTitle = document.getElementById('build-title');
     this.suggestionPanel = document.getElementById('suggestion-panel');
+
     this.initialize();
   }
 
   private initialize(): void {
-    // Charger le build actif au démarrage depuis localStorage
-    this.loadActiveBuild();
+    // Configurer les boutons de la titlebar
+    this.setupTitlebar();
 
-    // Écouter les mises à jour de build via IPC
-    ipcRenderer.on('active-build-updated', (_event, build: Build) => {
-      if (build) {
-        this.displayBuild(build);
-      } else {
-        this.showNoBuild();
-      }
+    // Écouter les mises à jour du build actif
+    window.electronAPI.build.onActiveBuildUpdated((build: Build | null) => {
+      console.log('Overlay: Build reçu:', build);
+      this.updateBuildDisplay(build);
     });
 
     // Écouter les événements du jeu
-    ipcRenderer.on('game-event', (_event, event: GameEvent) => {
+    window.electronAPI.game.onEvent((event: GameEvent) => {
       this.handleGameEvent(event);
     });
+
+    // Afficher le message "aucun build" par défaut
+    this.showNoBuild();
+
+    console.log('Overlay initialisé et en attente du build...');
   }
 
-  private loadActiveBuild(): void {
-    const activeBuildId = localStorage.getItem('bonkdata_active_build');
+  private setupTitlebar(): void {
+    const minimizeBtn = document.getElementById('minimize-btn');
+    const closeBtn = document.getElementById('close-btn');
 
-    if (!activeBuildId) {
-      this.showNoBuild();
-      return;
+    if (minimizeBtn) {
+      minimizeBtn.addEventListener('click', () => {
+        window.electronAPI.overlay.minimize();
+      });
     }
 
-    const savedBuildsStr = localStorage.getItem('bonkdata_builds');
-    const savedBuilds: Build[] = JSON.parse(savedBuildsStr || '[]');
-    const build = savedBuilds.find(b => b.id === activeBuildId);
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        window.electronAPI.overlay.close();
+      });
+    }
+  }
+
+  private updateBuildDisplay(build: Build | null): void {
+    this.currentBuild = build;
 
     if (!build) {
       this.showNoBuild();
       return;
     }
 
-    this.displayBuild(build);
+    this.showBuild(build);
   }
 
   private showNoBuild(): void {
-    if (this.noBuildDiv && this.buildDisplay) {
-      this.noBuildDiv.style.display = 'block';
-      this.buildDisplay.style.display = 'none';
+    if (this.noBuildMessage) this.noBuildMessage.style.display = 'block';
+    if (this.buildDisplay) this.buildDisplay.style.display = 'none';
+    if (this.buildTitle) this.buildTitle.textContent = '🎮 BonkData Overlay';
+  }
+
+  private showBuild(build: Build): void {
+    if (this.noBuildMessage) this.noBuildMessage.style.display = 'none';
+    if (this.buildDisplay) this.buildDisplay.style.display = 'block';
+    if (this.buildTitle) this.buildTitle.textContent = `🎮 ${build.name}`;
+
+    // Afficher le personnage
+    if (this.characterDisplay && build.character) {
+      this.characterDisplay.innerHTML = this.renderCharacter(build.character);
+    }
+
+    // Afficher les armes
+    if (this.weaponsDisplay) {
+      this.weaponsDisplay.innerHTML = build.weapons.map(w => this.renderWeapon(w)).join('');
+    }
+
+    // Afficher les tomes
+    if (this.tomesDisplay) {
+      this.tomesDisplay.innerHTML = build.tomes.map(t => this.renderTome(t)).join('');
     }
   }
 
-  private displayBuild(build: Build): void {
-    if (!this.noBuildDiv || !this.buildDisplay) return;
-
-    this.noBuildDiv.style.display = 'none';
-    this.buildDisplay.style.display = 'block';
-
-    const titleEl = document.getElementById('build-title');
-    if (titleEl) {
-      titleEl.textContent = `🎮 ${build.name || build.character.name}`;
-    }
-
-    this.displayCharacter(build);
-    this.displayWeapons(build);
-    this.displayTomes(build);
-  }
-
-  private displayCharacter(build: Build): void {
-    const characterDisplay = document.getElementById('character-display');
-    if (!characterDisplay) return;
-
-    characterDisplay.innerHTML = `
+  private renderCharacter(character: Character): string {
+    return `
       <div class="character-card">
-        <img src="${build.character.image}" alt="${build.character.name}" />
-        <span class="character-name">${build.character.name}</span>
+        <img src="${character.image}" alt="${character.name}" class="character-image" onerror="this.style.display='none'">
+        <div class="character-info">
+          <span class="character-name">${character.name}</span>
+          <span class="default-weapon">${character.defaultWeapon}</span>
+        </div>
       </div>
     `;
   }
 
-  private displayWeapons(build: Build): void {
-    const weaponsDisplay = document.getElementById('weapons-display');
-    if (!weaponsDisplay) return;
-
-    const defaultWeapon = WEAPONS.find(w => w.id === build.character.defaultWeaponId);
-    let weaponsHTML = '';
-
-    if (defaultWeapon) {
-      weaponsHTML += `
-        <div class="item-card default">
-          <span class="item-number default">★</span>
-          <img src="${defaultWeapon.image}" alt="${defaultWeapon.name}" />
-          <span class="item-name">${defaultWeapon.name}</span>
-        </div>
-      `;
-    }
-
-    build.weapons.forEach((weapon, index) => {
-      weaponsHTML += `
-        <div class="item-card">
-          <span class="item-number">${index + 2}</span>
-          <img src="${weapon.image}" alt="${weapon.name}" />
-          <span class="item-name">${weapon.name}</span>
-        </div>
-      `;
-    });
-
-    weaponsDisplay.innerHTML = weaponsHTML;
+  private renderWeapon(weapon: Weapon): string {
+    return `
+      <div class="item-card weapon-card" data-item-id="${weapon.id}">
+        <img src="${weapon.image}" alt="${weapon.name}" class="item-image" onerror="this.style.display='none'">
+        <span class="item-name">${weapon.name}</span>
+      </div>
+    `;
   }
 
-  private displayTomes(build: Build): void {
-    const tomesDisplay = document.getElementById('tomes-display');
-    if (!tomesDisplay) return;
-
-    let tomesHTML = '';
-
-    build.tomes.forEach((tome, index) => {
-      tomesHTML += `
-        <div class="item-card">
-          <span class="item-number">${index + 1}</span>
-          <img src="${tome.image}" alt="${tome.name}" />
-          <span class="item-name">${tome.name}</span>
-        </div>
-      `;
-    });
-
-    tomesDisplay.innerHTML = tomesHTML;
+  private renderTome(tome: Tome): string {
+    return `
+      <div class="item-card tome-card" data-item-id="${tome.id}">
+        <img src="${tome.image}" alt="${tome.name}" class="item-image" onerror="this.style.display='none'">
+        <span class="item-name">${tome.name}</span>
+      </div>
+    `;
   }
 
-  /**
-   * Gère les événements du jeu
-   */
   private handleGameEvent(event: GameEvent): void {
-    console.log('Game event received:', event);
+    console.log('Overlay: Game event reçu:', event);
 
-    if (event.type === 'level-up') {
-      this.showLevelUpMessage();
-    } else if (event.type === 'level-up-ended') {
-      this.hideLevelUpMessage();
-      this.clearHighlightedItems();
-    } else if (event.type === 'build-items-detected') {
-      this.highlightDetectedItems(event.data.items);
+    switch (event.type) {
+      case 'level-up':
+        this.handleLevelUp(event.data);
+        break;
+      case 'level-up-ended':
+        this.handleLevelUpEnd();
+        break;
+      case 'item-detected':
+        this.highlightDetectedItems(event.data?.detectedItems || []);
+        break;
+      default:
+        console.log('Overlay: Événement non géré:', event.type);
     }
   }
 
-  /**
-   * Affiche l'indicateur de level-up
-   */
-  private showLevelUpMessage(): void {
-    if (!this.suggestionPanel) return;
+  private handleLevelUp(data: any): void {
+    if (this.suggestionPanel) {
+      this.suggestionPanel.style.display = 'block';
+      this.suggestionPanel.innerHTML = `
+        <div class="level-up-indicator">
+          <span class="pulse">⬆️</span>
+          <span>LEVEL UP!</span>
+        </div>
+      `;
+    }
 
-    console.log('🎉 Affichage de l\'indicateur de level-up dans l\'overlay');
-
-    // Afficher le panneau avec un style très visible
-    this.suggestionPanel.style.display = 'block';
-    this.suggestionPanel.innerHTML = `
-      <div class="suggestion-header">
-        <h3 style="font-size: 2rem; text-transform: uppercase; animation: pulse 1s infinite;">
-          YOUHOU
-        </h3>
-        <p style="font-size: 1.2rem; margin-top: 10px;">
-          Level-up détecté !
-        </p>
-      </div>
-    `;
+    // Mettre en surbrillance les items détectés
+    if (data?.detectedItems) {
+      this.highlightDetectedItems(data.detectedItems);
+    }
   }
 
-  /**
-   * Masque l'indicateur de level-up
-   */
-  private hideLevelUpMessage(): void {
-    if (!this.suggestionPanel) return;
+  private handleLevelUpEnd(): void {
+    if (this.suggestionPanel) {
+      this.suggestionPanel.style.display = 'none';
+      this.suggestionPanel.innerHTML = '';
+    }
 
-    console.log('✅ Masquage de l\'indicateur de level-up (texte disparu)');
-    this.suggestionPanel.style.display = 'none';
+    // Retirer les surbrillances
+    this.clearHighlights();
   }
 
-  /**
-   * Met en surbrillance les items détectés sur l'écran
-   */
   private highlightDetectedItems(detectedItems: string[]): void {
-    console.log('🎯 Items à mettre en surbrillance:', detectedItems);
+    // Retirer les anciennes surbrillances
+    this.clearHighlights();
 
-    // Nettoyer d'abord tous les highlights
-    this.clearHighlightedItems();
+    if (!this.currentBuild) return;
 
-    // Pour chaque item détecté, ajouter la classe de highlight
-    detectedItems.forEach((itemName) => {
-      // Chercher dans les armes
-      const weaponsDisplay = document.getElementById('weapons-display');
-      if (weaponsDisplay) {
-        const itemCards = weaponsDisplay.querySelectorAll('.item-card');
-        itemCards.forEach((card) => {
-          const nameElement = card.querySelector('.item-name');
-          if (nameElement) {
-            const cardItemName = nameElement.textContent?.toUpperCase().replace(/\s+/g, '') || '';
-            if (cardItemName === itemName) {
-              card.classList.add('highlight-detected');
-              console.log('✅ Arme mise en surbrillance:', nameElement.textContent);
-            }
-          }
-        });
+    // Normaliser les noms détectés
+    const normalizedDetected = detectedItems.map(item =>
+      item.toUpperCase().replace(/['\s-]/g, '')
+    );
+
+    // Chercher et highlighter les armes correspondantes
+    const weaponCards = document.querySelectorAll('.weapon-card');
+    weaponCards.forEach(card => {
+      const nameEl = card.querySelector('.item-name');
+      if (nameEl) {
+        const itemName = nameEl.textContent?.toUpperCase().replace(/['\s-]/g, '') || '';
+        if (normalizedDetected.some(d => d.includes(itemName) || itemName.includes(d))) {
+          card.classList.add('highlighted', 'blink');
+        }
       }
+    });
 
-      // Chercher dans les tomes
-      const tomesDisplay = document.getElementById('tomes-display');
-      if (tomesDisplay) {
-        const itemCards = tomesDisplay.querySelectorAll('.item-card');
-        itemCards.forEach((card) => {
-          const nameElement = card.querySelector('.item-name');
-          if (nameElement) {
-            const cardItemName = nameElement.textContent?.toUpperCase().replace(/\s+/g, '') || '';
-            if (cardItemName === itemName) {
-              card.classList.add('highlight-detected');
-              console.log('✅ Tome mis en surbrillance:', nameElement.textContent);
-            }
-          }
-        });
+    // Chercher et highlighter les tomes correspondants
+    const tomeCards = document.querySelectorAll('.tome-card');
+    tomeCards.forEach(card => {
+      const nameEl = card.querySelector('.item-name');
+      if (nameEl) {
+        const itemName = nameEl.textContent?.toUpperCase().replace(/['\s-]/g, '') || '';
+        if (normalizedDetected.some(d => d.includes(itemName) || itemName.includes(d))) {
+          card.classList.add('highlighted', 'blink');
+        }
       }
     });
   }
 
-  /**
-   * Retire la surbrillance de tous les items
-   */
-  private clearHighlightedItems(): void {
-    const allItemCards = document.querySelectorAll('.item-card.highlight-detected');
-    allItemCards.forEach((card) => {
-      card.classList.remove('highlight-detected');
+  private clearHighlights(): void {
+    document.querySelectorAll('.highlighted').forEach(el => {
+      el.classList.remove('highlighted', 'blink');
     });
   }
 }
 
+// Initialiser l'application
 document.addEventListener('DOMContentLoaded', () => {
-  new OverlayRenderer();
+  new OverlayApp();
 });
 

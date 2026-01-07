@@ -1,0 +1,244 @@
+/**
+ * Build Section - Sections de création de build
+ */
+
+.build-section {
+    margin-bottom: 35px;
+    padding: 25px;
+    background: #1a1a1a;
+    border-radius: 0;
+    border: 2px solid var(--border-bright);
+    box-shadow: none;
+}
+
+.build-section h3 {
+    color: var(--accent);
+    font-size: 0.8rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--border-bright);
+}
+
+/* Selection Grids */
+.selection-grid {
+    display: grid;
+    gap: 18px;
+    margin-bottom: 16px;
+}
+
+.character-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+}
+
+.weapon-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+
+.tome-grid {
+    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+}
+
+/* Selection Items - Style bouton gris 3D MEGABONK avec nom en bas */
+.selection-item {
+    position: relative;
+    border-radius: 0;
+    overflow: visible;
+    cursor: pointer;
+    background: linear-gradient(180deg, #888888 0%, #666666 50%, #444444 100%);
+    border: none;
+    transition: all 0.1s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0;
+    box-shadow:
+        0 6px 0 #2a2a2a,
+        0 8px 0 #1a1a1a,
+        0 10px 10px rgba(0, 0, 0, 0.4);
+    min-height: 140px;
+}
+
+.selection-item:hover {
+    background: linear-gradient(180deg, #999999 0%, #777777 50%, #555555 100%);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 0 #2a2a2a,
+        0 10px 0 #1a1a1a,
+        0 12px 15px rgba(0, 0, 0, 0.5);
+}
+
+.selection-item.selected {
+    background: linear-gradient(180deg, #999999 0%, #777777 50%, #555555 100%);
+    box-shadow:
+        0 4px 0 #2a2a2a,
+        0 6px 0 #1a1a1a,
+        0 8px 8px rgba(0, 0, 0, 0.4),
+        inset 0 0 0 3px #ff8800,
+        inset 0 0 20px rgba(255, 136, 0, 0.3);
+    transform: translateY(2px);
+}
+
+@keyframes selectedPulse {
+    0%, 100% {
+        box-shadow:
+            0 4px 0 #2a2a2a,
+            0 6px 0 #1a1a1a,
+            0 8px 8px rgba(0, 0, 0, 0.4),
+            inset 0 0 0 3px #ff8800,
+            inset 0 0 20px rgba(255, 136, 0, 0.3);
+    }
+    50% {
+        box-shadow:
+            0 4px 0 #2a2a2a,
+            0 6px 0 #1a1a1a,
+            0 8px 8px rgba(0, 0, 0, 0.4),
+            inset 0 0 0 3px #ffaa33,
+            inset 0 0 30px rgba(255, 170, 51, 0.5);
+    }
+}
+
+.selection-item.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 26px;
+    height: 26px;
+    background: #ff8800;
+    border-radius: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow:
+        0 3px 0 #cc6600,
+        0 0 15px rgba(255, 136, 0, 0.8);
+    border: 2px solid #000;
+    text-shadow: 1px 1px 0 #000;
+    z-index: 10;
+}
+
+.selection-item.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    pointer-events: none;
+    background: linear-gradient(180deg, #555555 0%, #444444 50%, #333333 100%);
+    box-shadow:
+        0 4px 0 #222222,
+        0 6px 0 #111111;
+}
+
+.selection-item.disabled::before {
+    content: '🔒';
+    position: absolute;
+    top: 45%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    z-index: 1;
+    filter: grayscale(1);
+}
+
+.selection-item.disabled .card-info {
+    opacity: 0.5;
+}
+
+.selection-item img {
+    width: 100%;
+    height: auto;
+    max-height: 90px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    transition: transform 0.2s ease;
+    padding: 10px 10px 5px 10px;
+    flex-shrink: 0;
+}
+
+.selection-item:hover img {
+    transform: scale(1.1);
+}
+
+/* Encadré du nom en bas */
+.card-info {
+    width: 100%;
+    background: linear-gradient(180deg, #444444 0%, #2a2a2a 100%);
+    padding: 8px 6px;
+    text-align: center;
+    border-top: 2px solid #1a1a1a;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.card-info strong {
+    font-size: 0.75rem;
+    color: #ffffff;
+    font-family: 'Alagard', monospace;
+    text-transform: uppercase;
+    line-height: 1.3;
+    text-shadow: 1px 1px 0 #000;
+    display: block;
+}
+
+.card-info .default-weapon {
+    font-size: 1rem;
+    color: #ffaa33;
+    font-family: 'Alagard', monospace;
+    text-shadow: 1px 1px 0 #000;
+    display: block;
+    margin-top: 2px;
+}
+
+/* Selected Info - Fond gris foncé uni */
+.selected-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 15px;
+    background: #1a1a1a;
+    border-radius: 0;
+    border: 2px solid var(--border-bright);
+    margin-top: 15px;
+    font-family: 'Alagard', monospace;
+    font-size: 0.65rem;
+}
+
+.selected-info span {
+    color: var(--text-secondary);
+}
+
+.selected-info strong {
+    color: var(--accent);
+    font-weight: normal;
+    text-shadow: 0 0 5px var(--accent);
+}
+
+/* Build Name Input - Fond noir uni */
+.build-name-input {
+    width: 100%;
+    padding: 15px 18px;
+    font-size: 0.8rem;
+    background: #000000;
+    border: 3px solid var(--border-bright);
+    border-radius: 0;
+    color: var(--text-primary);
+    font-family: 'Courier New', monospace;
+    transition: none;
+    box-shadow: none;
+}
+
+.build-name-input:focus {
+    outline: none;
+    border-color: var(--accent);
+    background: #000000;
+    box-shadow: none;
+}
+
+.build-name-input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.5;
+}
+

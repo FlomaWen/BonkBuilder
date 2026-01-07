@@ -1,0 +1,74 @@
+/**
+ * Tabs - Navigation par onglets
+ */
+
+.tabs {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    background: transparent;
+    padding: 0;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 15px 20px;
+    background: linear-gradient(180deg, #888888 0%, #666666 50%, #444444 100%);
+    border: none;
+    border-radius: 0;
+    color: #ffffff;
+    font-size: 1.25rem;
+    font-family: 'Alagard', monospace;
+    font-weight: normal;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    position: relative;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    box-shadow:
+        0 6px 0 #2a2a2a,
+        0 8px 0 #1a1a1a,
+        0 10px 10px rgba(0, 0, 0, 0.4);
+    text-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+}
+
+.tab-button:hover {
+    background: linear-gradient(180deg, #999999 0%, #777777 50%, #555555 100%);
+    transform: translateY(-2px);
+    box-shadow:
+        0 8px 0 #2a2a2a,
+        0 10px 0 #1a1a1a,
+        0 12px 15px rgba(0, 0, 0, 0.5);
+}
+
+.tab-button:active {
+    transform: translateY(4px);
+    box-shadow:
+        0 2px 0 #2a2a2a,
+        0 4px 0 #1a1a1a,
+        0 6px 6px rgba(0, 0, 0, 0.3);
+}
+
+.tab-button.active {
+    background: linear-gradient(180deg, #999999 0%, #777777 50%, #555555 100%);
+    transform: translateY(2px);
+    box-shadow:
+        0 4px 0 #2a2a2a,
+        0 6px 0 #1a1a1a,
+        0 8px 8px rgba(0, 0, 0, 0.4);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.4s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+

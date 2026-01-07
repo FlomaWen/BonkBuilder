@@ -2,7 +2,6 @@
  * Gestionnaire de l'overlay
  */
 
-import { ipcRenderer } from 'electron';
 import { BuildService } from '../services/build-service';
 
 export class OverlayManager {
@@ -80,11 +79,11 @@ export class OverlayManager {
 
   private openOverlay(): void {
     // Envoyer la commande d'ouverture de l'overlay
-    ipcRenderer.send('open-overlay');
+    window.electronAPI.overlay.open();
 
     // Démarrer automatiquement la capture avec intervalle 300ms
     setTimeout(() => {
-      ipcRenderer.send('start-capture', {
+      window.electronAPI.capture.start({
         targetWindowTitle: 'MEGABONK',
         intervalMs: 300,
         enabled: true
@@ -93,7 +92,7 @@ export class OverlayManager {
   }
 
   private closeOverlay(): void {
-    ipcRenderer.send('close-overlay');
+    window.electronAPI.overlay.close();
   }
 }
 

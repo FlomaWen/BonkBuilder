@@ -2,7 +2,6 @@
  * Gestionnaire de l'interface de capture d'écran
  */
 
-import { ipcRenderer } from 'electron';
 import { CaptureStatus, GameEvent } from '../../types';
 
 export class GameCaptureUI {
@@ -11,7 +10,6 @@ export class GameCaptureUI {
   private statusText: HTMLElement | null;
 
   constructor() {
-
     // Récupérer les éléments DOM (juste le statut)
     this.statusIcon = document.getElementById('capture-status-icon');
     this.statusText = document.getElementById('capture-status-text');
@@ -23,14 +21,13 @@ export class GameCaptureUI {
    * Initialise l'interface et les événements
    */
   private initialize(): void {
-
     // Écouter les mises à jour de statut depuis le main process
-    ipcRenderer.on('capture-status-changed', (_event, status: CaptureStatus) => {
+    window.electronAPI.capture.onStatusChanged((status: CaptureStatus) => {
       this.updateStatus(status);
     });
 
     // Écouter les événements du jeu
-    ipcRenderer.on('game-event', (_event, event: GameEvent) => {
+    window.electronAPI.game.onEvent((event: GameEvent) => {
       this.handleGameEvent(event);
     });
   }
@@ -74,3 +71,4 @@ export class GameCaptureUI {
     // Dans le futur, on pourra afficher des notifications, mettre à jour l'overlay, etc.
   }
 }
+

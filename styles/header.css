@@ -1,0 +1,57 @@
+/**
+ * Header et titres
+ */
+
+header {
+    text-align: center;
+    padding: 40px 20px;
+    background: transparent;
+    border: none;
+    margin-bottom: 30px;
+    box-shadow: none;
+}
+
+h1 {
+    font-size: 3rem;
+    font-weight: normal;
+    color: #ffffff;
+    text-shadow: 2px 2px 0 #000;
+    margin: 0;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    font-family: 'Press Start 2P', monospace;
+}
+
+.subtitle {
+    display: none;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: normal;
+    color: var(--text-primary);
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Alagard', monospace;
+    text-shadow:
+        0 0 10px var(--accent),
+        2px 2px 0 #000;
+}
+
+h3 {
+    font-size: 1.1rem;
+    font-weight: normal;
+    color: var(--accent);
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-family: 'Alagard', monospace;
+    text-shadow:
+        0 0 5px var(--accent),
+        1px 1px 0 #000;
+}
+

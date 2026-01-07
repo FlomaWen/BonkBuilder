@@ -6,6 +6,14 @@ import { app, BrowserWindow } from 'electron';
 import { WindowManager } from './window-manager';
 import { IpcHandlers } from './ipc-handlers';
 
+// Désactiver l'accélération GPU pour éviter les erreurs sur certaines machines
+app.disableHardwareAcceleration();
+
+// Ignorer les erreurs de certificat GPU
+app.commandLine.appendSwitch('ignore-gpu-blacklist');
+app.commandLine.appendSwitch('disable-gpu');
+app.commandLine.appendSwitch('disable-software-rasterizer');
+
 class BonkBuilderApp {
   private windowManager: WindowManager;
   private ipcHandlers: IpcHandlers;

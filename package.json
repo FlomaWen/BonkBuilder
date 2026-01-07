@@ -1,6 +1,6 @@
 {
   "name": "bonkbuilder",
-  "version": "2.0.0",
+  "version": "2.0.7",
   "description": "Application Electron avec support Overwolf - Build Manager pour Bonk.io",
   "main": "dist/main/index.js",
   "scripts": {
@@ -11,22 +11,43 @@
     "clean": "rimraf dist",
     "rebuild": "npm run clean && npm run build",
     "lint": "eslint src --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "dist": "npm run build && electron-builder",
+    "dist:win": "npm run build && electron-builder --win"
   },
-  "keywords": [
-    "electron",
-    "overwolf",
-    "bonk",
-    "typescript"
-  ],
-  "author": "",
-  "license": "ISC",
+  "build": {
+    "appId": "com.bonkbuilder.app",
+    "productName": "BonkBuilder",
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "files": [
+      "dist/**/*",
+      "assets/**/*",
+      "index.html",
+      "overlay.html",
+      "styles.css",
+      "styles/**/*",
+      "fonts/**/*",
+      "eng.traineddata",
+      "fra.traineddata"
+    ],
+    "extraResources": [
+      "assets/**/*"
+    ]
+  },
   "devDependencies": {
     "@types/electron": "^1.6.10",
     "@types/node": "^20.10.0",
     "@typescript-eslint/eslint-plugin": "^6.13.0",
     "@typescript-eslint/parser": "^6.13.0",
     "electron": "^27.0.0",
+    "electron-builder": "^24.9.1",
     "eslint": "^8.54.0",
     "prettier": "^3.1.0",
     "rimraf": "^5.0.5",

@@ -1,0 +1,52 @@
+/**
+ * Variables CSS globales - Thème MEGABONK
+ */
+
+/* Police ALAGARD */
+@font-face {
+    font-family: 'Alagard';
+    src: url('../fonts/alagard.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+:root {
+    /* Palette MEGABONK - Orange et Gris */
+    --megabonk-orange: #ff8800;
+    --megabonk-orange-light: #ffaa33;
+    --megabonk-orange-dark: #cc6600;
+
+    /* Couleurs principales */
+    --primary: #ff8800;
+    --primary-light: #ffaa33;
+    --primary-dark: #cc6600;
+    --accent: #ffaa33;
+    --success: #00ff41;
+    --warning: #ffff00;
+    --danger: #ff006e;
+
+    /* Couleurs boutons gris 3D */
+    --btn-gray: #666666;
+    --btn-gray-light: #888888;
+    --btn-gray-dark: #444444;
+    --btn-shadow: #2a2a2a;
+
+    /* Backgrounds */
+    --bg-dark: #2A493D;
+    --bg-darker: #1a2e26;
+    --bg-card: rgba(42, 73, 61, 0.5);
+    --bg-card-hover: rgba(42, 73, 61, 0.7);
+
+    /* Textes */
+    --text-primary: #ffffff;
+    --text-secondary: #ffaa33;
+    --text-glow: #ff8800;
+
+    /* Bordures et effets */
+    --border: rgba(255, 136, 0, 0.4);
+    --border-bright: #ff8800;
+    --glow-orange: 0 0 10px #ff8800, 0 0 20px #ff8800, 0 0 30px #ff8800;
+
+    --titlebar-height: 32px;
+}
+

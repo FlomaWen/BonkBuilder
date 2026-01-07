@@ -1,0 +1,106 @@
+/**
+ * Overlay Tab - Section overlay et capture
+ */
+
+.overlay-message {
+    padding: 20px;
+}
+
+.info-box {
+    display: flex;
+    gap: 20px;
+    padding: 24px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    border-left: 4px solid var(--warning);
+}
+
+.info-icon {
+    font-size: 2.5rem;
+}
+
+.info-box h3 {
+    color: var(--warning);
+    margin-bottom: 8px;
+}
+
+.info-box p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.active-build-container {
+    background: rgba(16, 185, 129, 0.08);
+    border-radius: 16px;
+    padding: 28px;
+    border: 2px solid rgba(16, 185, 129, 0.3);
+}
+
+.overlay-actions {
+    margin-top: 24px;
+    padding: 24px;
+    background: rgba(99, 102, 241, 0.08);
+    border-radius: 12px;
+    border: 2px dashed rgba(99, 102, 241, 0.3);
+    text-align: center;
+}
+
+.hint-text {
+    margin-top: 12px;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.overlay-guide {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.guide-item {
+    display: flex;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(15, 23, 42, 0.5);
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+    transition: all 0.3s ease;
+}
+
+.guide-item:hover {
+    background: rgba(99, 102, 241, 0.08);
+    border-left-color: var(--primary-light);
+    transform: translateX(4px);
+}
+
+.guide-icon {
+    font-size: 1.8rem;
+    min-width: 40px;
+}
+
+.guide-item h4 {
+    color: var(--primary-light);
+    margin-bottom: 6px;
+    font-size: 1.1rem;
+}
+
+.guide-item p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.info-box.info {
+    background: rgba(34, 211, 238, 0.08);
+    border: 1px solid rgba(34, 211, 238, 0.3);
+    border-left: 4px solid var(--accent);
+}
+
+.info-box.info h4 {
+    color: var(--accent);
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+

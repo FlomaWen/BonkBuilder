@@ -2,6 +2,9 @@
  * Point d'entrée du processus renderer
  */
 
+// Initialiser l'API Electron en premier (expose window.electronAPI)
+import './services/electron-api';
+
 import { TabManager } from './ui/tab-manager';
 import { BuildUI } from './ui/build-ui';
 import { OverlayManager } from './ui/overlay-manager';

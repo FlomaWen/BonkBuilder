@@ -2,7 +2,6 @@
  * Gestion de la barre de titre personnalisée
  */
 
-import { ipcRenderer } from 'electron';
 
 export class TitleBar {
   private minimizeBtn: HTMLElement;
@@ -54,21 +53,21 @@ export class TitleBar {
    * Réduit la fenêtre
    */
   private minimize(): void {
-    ipcRenderer.send('window-minimize');
+    window.electronAPI.window.minimize();
   }
 
   /**
    * Agrandit ou restaure la fenêtre
    */
   private toggleMaximize(): void {
-    ipcRenderer.send('window-toggle-maximize');
+    window.electronAPI.window.toggleMaximize();
   }
 
   /**
    * Ferme la fenêtre
    */
   private close(): void {
-    ipcRenderer.send('window-close');
+    window.electronAPI.window.close();
   }
 
   /**
@@ -76,7 +75,7 @@ export class TitleBar {
    */
   private updateMaximizeButton(): void {
     // Demander l'état actuel de la fenêtre
-    ipcRenderer.invoke('window-is-maximized').then((isMaximized: boolean) => {
+    window.electronAPI.window.isMaximized().then((isMaximized: boolean) => {
       const svg = this.maximizeBtn.querySelector('svg');
       if (!svg) return;
 

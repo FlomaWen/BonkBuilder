@@ -2,7 +2,6 @@
  * Gestion de la barre de titre personnalisée pour l'overlay
  */
 
-import { ipcRenderer } from 'electron';
 
 export class OverlayTitleBar {
   private minimizeBtn: HTMLElement | null;
@@ -38,14 +37,14 @@ export class OverlayTitleBar {
    * Réduit la fenêtre overlay
    */
   private minimize(): void {
-    ipcRenderer.send('overlay-minimize');
+    window.electronAPI.overlay.minimize();
   }
 
   /**
    * Ferme la fenêtre overlay
    */
   private close(): void {
-    ipcRenderer.send('close-overlay');
+    window.electronAPI.overlay.close();
   }
 }
 
